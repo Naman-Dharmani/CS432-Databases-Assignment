@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add product</title>
+</head>
+<body>
+    
+    <form action="/product/create/addToDb" method="post">
+        <label> Product Name: </label><br>
+        <input type="text" name="product_name" placeholder="Nothin Phone 2" required><br>
+
+        <label> Product Description: </label><br>
+        <input type="text" name="product_description" placeholder="Nothing by Nothing" required><br>
+
+        <label for="status">Select Status:</label>
+        <select id="status" name="status">
+            <option value="new">New</option>
+            <option value="old">Old</option>
+        </select><br>        
+
+        <label> Quantity </label><br>
+        <input type="number" name="quantity" placeholder="2" min="0" required><br>
+
+        <input type="submit" value="Submit">
+    </form> 
+
+</body>
+</html>
