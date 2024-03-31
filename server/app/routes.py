@@ -1,4 +1,6 @@
 from flask import render_template, jsonify, request, session, redirect, url_for
+from flasgger import swag_from
+
 from . import app
 from .models import User, Listing
 from . import db
@@ -79,6 +81,7 @@ def product(id, methods=['GET']):
 # TODO
 
 @app.route('/user/<int:u_id>', methods=['GET'])
+@swag_from('docs/get_user.yml')
 def get_user(u_id):
     user = User.query.get(u_id)
     if user is None:

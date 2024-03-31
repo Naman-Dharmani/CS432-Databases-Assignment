@@ -7,3 +7,4 @@ mysqlclient
 pyyaml
 pymysql
 sqlalchemy_utils
+flasgger

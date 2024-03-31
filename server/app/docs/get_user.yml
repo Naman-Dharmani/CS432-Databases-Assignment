@@ -1,0 +1,14 @@
+get_user:
+    tags:
+        - "user"
+    parameters:
+        - name: "u_id"
+          in: "path"
+          description: "ID of user to retrieve"
+          required: true
+          type: "integer"
+    responses:
+        200:
+            description: "User details"
+        404:
+            description: "User not found"

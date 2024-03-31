@@ -5,6 +5,8 @@ from flask_login import LoginManager
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists
 import yaml
+from flasgger import Swagger
+
 
 login_manager = LoginManager()
 db = SQLAlchemy()
@@ -19,6 +21,7 @@ mysql_db = conf['mysql_db']
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}/{mysql_db}"
 app.config['SECRET_KEY'] = 'veryobviouslysecret' # TODO: Change this to something more secure
 
+swagger = Swagger(app)
 db.init_app(app)
 cors.init_app(app)
 login_manager.init_app(app)
