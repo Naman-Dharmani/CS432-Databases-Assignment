@@ -1,6 +1,7 @@
-from flask import Flask, render_template, jsonify, request, session, redirect, url_for
-
-app = Flask(__name__)
+from flask import render_template, jsonify, request, session, redirect, url_for
+from . import app
+from .models import User, Listing
+from . import db
 
 # Dummy data structure to simulate a database
 products = [
@@ -74,5 +75,37 @@ def product(id, methods=['GET']):
     return jsonify(required_prod)
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# USER ROUTES
+# TODO
+
+@app.route('/user/<int:u_id>', methods=['GET'])
+def get_user(u_id):
+    user = User.query.get(u_id)
+    if user is None:
+        return jsonify({'message': 'User not found'}), 404
+    return jsonify(user.to_dict())
+
+@app.route('/user/<int:u_id>', methods=['PUT'])
+def update_user(u_id):
+    user = User.query.get(u_id)
+    if user is None:
+        return jsonify({'message': 'User not found'}), 404
+    data = request.get_json()
+    for key, value in data.items():
+        setattr(user, key, value)
+    db.session.commit()
+    return jsonify(user.__dict__)
+
+@app.route('/user/<int:u_id>', methods=['DELETE'])
+def delete_user(u_id):
+    user = User.query.get(u_id)
+    if user is None:
+        return jsonify({'message': 'User not found'}), 404
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'message': 'User deleted'})
+
+@app.route('/user/<int:u_id>/listings', methods=['GET'])
+def get_user_listings(u_id):
+    listings = Listing.query.filter_by(user_id=u_id).all()
+    return jsonify([listing.__dict__ for listing in listings])

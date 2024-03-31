@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Signup</title>
+    </head>
+    <body>
+        <h1>Signup</h1>
+        <form method="POST" action="/signup">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required /><br /><br />
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required /><br /><br />
+            <label for="password">Password:</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                required
+            /><br /><br />
+            <label for="phone_no">Phone Number:</label>
+            <input
+                type="text"
+                id="phone_no"
+                name="phone_no"
+                required
+            /><br /><br />
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option></select
+            ><br /><br />
+
+            <label for="residence_location">Residence Location:</label>
+            <input
+                type="text"
+                id="residence_location"
+                name="residence_location"
+                required
+            /><br /><br />
+            <label for="residence_number">Residence Number:</label>
+            <input
+                type="text"
+                id="residence_number"
+                name="residence_number"
+                required
+            /><br /><br />
+            <label for="anonymity_level">Anonymity Level:</label>
+            <select id="anonymity_level" name="anonymity_level" required>
+                <option value="Visible">Visible</option>
+                <option value="Anonymous">Anonymous</option></select
+            ><br /><br />
+            <label for="theme_preference">Theme Preference:</label>
+            <select id="theme_preference" name="theme_preference">
+                <option value="Dark">Dark</option>
+                <option value="Light">Light</option></select
+            ><br /><br />
+            <label for="language_preference">Language Preference:</label>
+            <select id="language_preference" name="language_preference">
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option></select
+            ><br /><br />
+            <label for="notification_preference"
+                >Notification Preference:</label
+            >
+            <select id="notification_preference" name="notification_preference">
+                <option value="All">All</option>
+                <option value="Chat">Chat</option>
+                <option value="None">None</option></select
+            ><br /><br />
+            <input type="submit" value="Signup" />
+        </form>
+    </body>
+</html>
