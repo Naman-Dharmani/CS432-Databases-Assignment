@@ -6,14 +6,16 @@ from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists
 import yaml
 from flasgger import Swagger
+from flask_login import login_user, logout_user, login_required, current_user
 
 
 login_manager = LoginManager()
+login_manager.login_view = 'login' 
 db = SQLAlchemy()
 cors = CORS()
 
 app = Flask(__name__)
-conf = yaml.safe_load(open('config.yaml'))
+conf = yaml.safe_load(open('../config.yaml'))
 mysql_host = conf['mysql_host']
 mysql_user = conf['mysql_user']
 mysql_password = conf['mysql_password']
