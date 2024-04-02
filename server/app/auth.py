@@ -1,8 +1,9 @@
-from flask import redirect, render_template, request, url_for
-from flask_login import login_user, logout_user, login_required
+from flask import redirect, render_template, request, url_for, flash
+# from flask_login import login_user, logout_user, login_required, current_user
 from . import login_manager
 from .models import User
 from . import app
+from . import login_user, logout_user, login_required, current_user
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -19,7 +20,12 @@ def signup():
                 phone_no=data['phone_no'],
                 gender=data['gender'],
                 residence_location=data['residence_location'],
-                residence_number=data['residence_number'])
+                residence_number=data['residence_number'],
+                anonymity_level=data['anonymity_level'],
+                theme_preference=data['theme_preference'],
+                language_preference=data['language_preference'],
+                notification_preference=data['notification_preference']
+                )
         user.set_password(data['password'])
         user.save()
         return redirect(url_for('login'))
