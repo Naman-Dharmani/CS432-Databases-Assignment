@@ -64,6 +64,12 @@ class Product(db.Model):
     def __repr__(self):
         return f"<Product(prod_id={self.prod_id}, prod_title='{self.prod_title}', prod_condition='{self.prod_condition}')>"
     
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+    
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 class Chat(db.Model):
     __tablename__ = 'Chat'
