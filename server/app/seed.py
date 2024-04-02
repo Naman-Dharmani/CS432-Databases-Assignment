@@ -9,36 +9,43 @@ def random_string(length=10):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
 
+def random_number(length=10):
+    """Generate a random number of fixed length """
+    numbers = string.digits
+    return ''.join(random.choice(numbers) for i in range(length))
+
 def seed_db():
-    # Create 100 Users
-    for _ in range(100):
+    # Create 10 Users
+    # TODO: password needs to be hashed
+    for _ in range(10):
         user = User(
             name=random_string(),
             email=f'{random_string()}@example.com',
             password='password',
-            phone_no=random_string(10),
+            phone_no=random_number(10),
             gender=random.choice(['Male', 'Female', 'Other']),
-            residence_location=random_string(255),
-            residence_number=random_string(255)
+            residence_location=random_string(5),
+            residence_number=random_number(3)
         )
+        user.set_password(user.password)
         db.session.add(user)
 
-    # Create 100 Products
-    for _ in range(100):
+    # Create 10 Products
+    for _ in range(10):
         product = Product(
-            prod_title=random_string(30),
-            description=random_string(400),
+            prod_title=random_string(10),
+            description=random_string(100),
             prod_condition=random.choice(['New', 'Used']),
             listed_price=random.uniform(0, 1000),
             quantity=random.randint(1, 100)
         )
         db.session.add(product)
 
-    # Create 100 Hashtags
-    for _ in range(100):
+    # Create 10 Hashtags
+    for _ in range(10):
         hashtag = Hashtag(
-            tag_label=random_string(27),
-            product_id=random.randint(1, 100)
+            tag_label=random_string(7),
+            product_id=random.randint(1, 10)
         )
         db.session.add(hashtag)
 
