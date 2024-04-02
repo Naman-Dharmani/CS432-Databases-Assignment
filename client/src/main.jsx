@@ -1,18 +1,21 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import App from "./App.jsx";
-import ProductList from "./ProductList.jsx";
+
+import Root from "./routes/root";
+import ErrorPage from "./error-page";
+import ProductList from "./routes/ProductList.jsx";
 import "./index.css";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <Root />,
+    errorElement: <ErrorPage />,
   },
   {
     path: "/products",
-    element: <App />,
+    element: <Root />,
     children: [
       {
         path: "/products",
@@ -25,5 +28,5 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <RouterProvider router={router} />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
