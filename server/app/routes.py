@@ -3,7 +3,7 @@ from flasgger import swag_from
 from datetime import datetime, timedelta, timezone
 
 from . import app
-from .models import User, Product, Listing, Category, Subcategory, Hashtag
+from .models import User, Product, Listing, Category, Subcategory, Hashtag, Product_Image
 from . import db
 from . import login_manager, login_user, logout_user, login_required, current_user
 
@@ -67,9 +67,10 @@ def get_products():
 def create_product():
     try:
         data = request.json
-        
+
         # Sanity check for the data
-        keys = ['prod_title', 'description', 'prod_condition', 'listed_price', 'quantity', 'category_name', 'subcategory_name']
+        keys = ['prod_title', 'description', 'prod_condition',
+                'listed_price', 'quantity', 'category_name', 'subcategory_name']
         if not all(key in data for key in keys):
             return make_response(jsonify({'error': 'Data is missing some keys'}), 400)
 
@@ -95,8 +96,8 @@ def create_product():
         # Need the category_id inorder to add the subcategory
         category_id = category.category_id
         sub_category = Subcategory(subcategory_name=data['subcategory_name'],
-                                category_id=category_id
-                                )
+                                   category_id=category_id
+                                   )
         db.session.add(sub_category)
         db.session.commit()
 
@@ -105,17 +106,26 @@ def create_product():
             for tag in data['hashtag'].split(','):
                 tag = tag.strip()
                 hashtag = Hashtag(tag_label=tag,
-                                product_id=product_id
-                                )
+                                  product_id=product_id
+                                  )
                 db.session.add(hashtag)
                 db.session.commit()
 
+        # TODO: uncomment this once login is required
         # user_id = current_user.get_id()
         # listing = Listing(user_id=user_id,
         #                   prod_id=product_id
         #                   )
         # db.session.add(listing)
         # db.session.commit()
+
+        product_image = Product_Image(image_url=data['image_url'],
+                                      prod_id=product_id,
+                                      # Describes what the image is about
+                                      image_caption=data['image_caption']
+                                      )
+        db.session.add(product_image)
+        db.session.commit()
 
         return make_response(jsonify({"message": "Product added successfully"}), 201)
 
@@ -130,10 +140,22 @@ def product(id):
         try:
             required_prod = Product.query.filter_by(
                 prod_id=id).first().to_dict()
+
             # If the product is not found, return a 404 error
             if required_prod == None:
                 return make_response({"message": 'Product not found'}, 404)
-            return make_response(jsonify(required_prod), 200)
+
+            # If product is found, get the other details
+            category = Category.query.filter_by(prod_id=id).first().to_dict()
+            subcategory = Subcategory.query.filter_by(category_id=category['category_id']).first().to_dict()
+            hashtags = [hashtag.to_dict()['tag_label'] for hashtag in Hashtag.query.filter_by(product_id=id).all()]
+            product_image = Product_Image.query.filter_by(prod_id=id).first().to_dict()
+
+            hashtags = dict(tag_label=hashtags)
+                
+            required_data= {**required_prod, **category, **subcategory, **hashtags, **product_image}
+            # print(required_data)
+            return make_response(jsonify(required_data), 200)
         except Exception as e:
             return make_response(jsonify({'error': str(e)}), 500)
 
@@ -145,16 +167,23 @@ def product(id):
             data = request.get_json()
 
             # Separating data for each table
-            product_data = {key: value for key, value in data.items() if key in Product.__table__.columns}
-            category_data = {key: value for key, value in data.items() if key in Category.__table__.columns}
-            subcategory_data = {key: value for key, value in data.items() if key in Subcategory.__table__.columns}
-            hashtag_data = {key: value for key, value in data.items() if key in Hashtag.__table__.columns}
+            product_data = {key: value for key, value in data.items(
+                            ) if key in Product.__table__.columns}
+            category_data = {key: value for key, value in data.items(
+                            ) if key in Category.__table__.columns}
+            subcategory_data = {key: value for key, value in data.items(
+                            ) if key in Subcategory.__table__.columns}
+            hashtag_data = {key: value for key, value in data.items(
+                            ) if key in Hashtag.__table__.columns}
+            product_image_data = {key: value for key, value in data.items(
+                            ) if key in Product_Image.__table__.columns}
 
             # Updating the product attributes
             for key, value in product_data.items():
                 setattr(product, key, value)
-            ist = timezone(timedelta(hours=5, minutes=30)) # IST (UTC+5:30)
-            product.date_modified = datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S')
+            ist = timezone(timedelta(hours=5, minutes=30))  # IST (UTC+5:30)
+            product.date_modified = datetime.now(
+                ist).strftime('%Y-%m-%d %H:%M:%S')
 
             # Updating the category attributes
             category = Category.query.filter_by(prod_id=id).first()
@@ -163,25 +192,32 @@ def product(id):
                     setattr(category, key, value)
 
             # Updating the subcategory attributes
-            subcategory = Subcategory.query.filter_by(category_id=category.category_id).first()
+            subcategory = Subcategory.query.filter_by(
+                category_id=category.category_id).first()
             if subcategory:
                 for key, value in subcategory_data.items():
                     setattr(subcategory, key, value)
-            
+
             # Updating the hashtags
             Hashtag.query.filter_by(product_id=id).delete()
             for key, value in hashtag_data.items():
                 for tag in value.split(','):
                     tag = tag.strip()
                     hashtag = Hashtag(tag_label=tag,
-                                    product_id=id
-                                    )
+                                      product_id=id
+                                      )
                     db.session.add(hashtag)
+
+            # Updating the product image
+            product_image = Product_Image.query.filter_by(prod_id=id).first()
+            if product_image:
+                for key, value in product_image_data.items():
+                    setattr(product_image, key, value)
 
             # The ids are already known, therefore commiting at the end
             db.session.commit()
             return make_response(jsonify({'message': 'Product Updated'}), 200)
-        
+
         except Exception as e:
             return make_response(jsonify({'error': str(e)}), 500)
 
