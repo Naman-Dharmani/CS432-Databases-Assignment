@@ -15,7 +15,7 @@ db = SQLAlchemy()
 cors = CORS()
 
 app = Flask(__name__)
-conf = yaml.safe_load(open('../config.yaml'))
+conf = yaml.safe_load(open('server/config.yaml'))
 mysql_host = conf['mysql_host']
 mysql_user = conf['mysql_user']
 mysql_password = conf['mysql_password']
