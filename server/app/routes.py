@@ -1,8 +1,9 @@
 from flask import render_template, jsonify, request, redirect, url_for, make_response
 from flasgger import swag_from
+from datetime import datetime, timedelta, timezone
 
 from . import app
-from .models import User, Product, Listing
+from .models import User, Product, Listing, Category, Subcategory, Hashtag
 from . import db
 from . import login_manager, login_user, logout_user, login_required, current_user
 
@@ -31,14 +32,18 @@ def home():
 # get() - works only on PK and returns a record
 # filter_by() - works on any column and returns a list of records.
 # Also, multiple conditions can be specified
+# TODO: While using PUT method for product, update the date_modified field as well
+# TODO: Update the corresponding tables that are connected to the product table
+#   --> Category, Subcategory, Hashtag DONE
+# TODO: DELETE method - need to enable cascading for delete in models.py
 
 
+# Route to get all products with pagination
 @app.route('/products', methods=['GET'])
 def get_products():
     # Retriving the page number from the query string
     try:
         page = request.args.get('page', 1, type=int)
-
         # per_page is the max number of products to be shown
         # If there are more products, the has_next attribute will be True
         # IF there are fewer products, the has_next attribute will be False
@@ -56,14 +61,17 @@ def get_products():
         return make_response(jsonify({'error': str(e)}), 500)
 
 
+# Route to add a new product
 @app.route('/product', methods=['POST'])
 # @login_required
 def create_product():
     try:
-        user_id = current_user.get_id()
         data = request.json
-        print(request.method)
-        print(data)
+        
+        # Sanity check for the data
+        keys = ['prod_title', 'description', 'prod_condition', 'listed_price', 'quantity', 'category_name', 'subcategory_name']
+        if not all(key in data for key in keys):
+            return make_response(jsonify({'error': 'Data is missing some keys'}), 400)
 
         # Adding the form data to the db
         product = Product(prod_title=data['prod_title'],
@@ -72,12 +80,50 @@ def create_product():
                           listed_price=data['listed_price'],
                           quantity=data['quantity']
                           )
-        product.save()
+        db.session.add(product)
+        db.session.commit()
+
+        # Need the prod_id inorder to add the category
+        # SQLAlchmey automatically updates the product instance after commit
+        product_id = product.prod_id
+        category = Category(category_name=data['category_name'],
+                            prod_id=product_id
+                            )
+        db.session.add(category)
+        db.session.commit()
+
+        # Need the category_id inorder to add the subcategory
+        category_id = category.category_id
+        sub_category = Subcategory(subcategory_name=data['subcategory_name'],
+                                category_id=category_id
+                                )
+        db.session.add(sub_category)
+        db.session.commit()
+
+        if 'hashtag' in data:
+            # Multiple hashtags can be added
+            for tag in data['hashtag'].split(','):
+                tag = tag.strip()
+                hashtag = Hashtag(tag_label=tag,
+                                product_id=product_id
+                                )
+                db.session.add(hashtag)
+                db.session.commit()
+
+        # user_id = current_user.get_id()
+        # listing = Listing(user_id=user_id,
+        #                   prod_id=product_id
+        #                   )
+        # db.session.add(listing)
+        # db.session.commit()
+
         return make_response(jsonify({"message": "Product added successfully"}), 201)
+
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
 
 
+# Route to get/update/delete a product by id
 @app.route('/product/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def product(id):
     if request.method == 'GET':
@@ -94,14 +140,48 @@ def product(id):
     elif request.method == 'PUT':
         try:
             product = Product.query.get(id)
-            print(product)
             if product is None:
                 return make_response(jsonify({'message': 'Product not found'}), 404)
             data = request.get_json()
-            for key, value in data.items():
+
+            # Separating data for each table
+            product_data = {key: value for key, value in data.items() if key in Product.__table__.columns}
+            category_data = {key: value for key, value in data.items() if key in Category.__table__.columns}
+            subcategory_data = {key: value for key, value in data.items() if key in Subcategory.__table__.columns}
+            hashtag_data = {key: value for key, value in data.items() if key in Hashtag.__table__.columns}
+
+            # Updating the product attributes
+            for key, value in product_data.items():
                 setattr(product, key, value)
+            ist = timezone(timedelta(hours=5, minutes=30)) # IST (UTC+5:30)
+            product.date_modified = datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S')
+
+            # Updating the category attributes
+            category = Category.query.filter_by(prod_id=id).first()
+            if category:
+                for key, value in category_data.items():
+                    setattr(category, key, value)
+
+            # Updating the subcategory attributes
+            subcategory = Subcategory.query.filter_by(category_id=category.category_id).first()
+            if subcategory:
+                for key, value in subcategory_data.items():
+                    setattr(subcategory, key, value)
+            
+            # Updating the hashtags
+            Hashtag.query.filter_by(product_id=id).delete()
+            for key, value in hashtag_data.items():
+                for tag in value.split(','):
+                    tag = tag.strip()
+                    hashtag = Hashtag(tag_label=tag,
+                                    product_id=id
+                                    )
+                    db.session.add(hashtag)
+
+            # The ids are already known, therefore commiting at the end
             db.session.commit()
             return make_response(jsonify({'message': 'Product Updated'}), 200)
+        
         except Exception as e:
             return make_response(jsonify({'error': str(e)}), 500)
 
