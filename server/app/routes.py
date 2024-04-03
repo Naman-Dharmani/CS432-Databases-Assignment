@@ -3,7 +3,7 @@ from flasgger import swag_from
 from datetime import datetime, timedelta, timezone
 
 from . import app
-from .models import User, Product, Listing, Category, Subcategory, Hashtag, Product_Image
+from .models import User, Product, Listing, Category, Subcategory, Hashtag, Product_Image, App_Feedback
 from . import db
 from . import login_manager, login_user, logout_user, login_required, current_user
 
@@ -181,9 +181,11 @@ def product(id):
             # Updating the product attributes
             for key, value in product_data.items():
                 setattr(product, key, value)
-            ist = timezone(timedelta(hours=5, minutes=30))  # IST (UTC+5:30)
+
+            # ist = timezone(timedelta(hours=5, minutes=30))  # IST (UTC+5:30)
+            utc = timezone(timedelta(hours=0, minutes=0))
             product.date_modified = datetime.now(
-                ist).strftime('%Y-%m-%d %H:%M:%S')
+                utc).strftime('%Y-%m-%d %H:%M:%S')
 
             # Updating the category attributes
             category = Category.query.filter_by(prod_id=id).first()
@@ -281,5 +283,24 @@ def get_user_listings(u_id):
     try:
         listings = Listing.query.filter_by(user_id=u_id).all()
         return make_response(jsonify([listing.__dict__ for listing in listings]), 200)
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+
+
+
+# <---------------------------------------------App Feedback----------------------------------------------------->
+@app.route('/app/feedback', methods=['POST'])
+def app_feedback():
+    try:
+        # user_id = current_user.get_id()
+        user_id = 2
+        data = request.get_json()
+        feedback = App_Feedback(user_id=user_id, 
+                                feedback_rating=data['rating'],
+                                feedback_text=data['feedback_text']
+                                )
+        db.session.add(feedback)
+        db.session.commit()
+        return make_response(jsonify({'message': 'Feedback submitted'}), 201)
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
