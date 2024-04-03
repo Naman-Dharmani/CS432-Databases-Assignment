@@ -93,6 +93,9 @@ class Hashtag(db.Model):
     def __repr__(self):
         return f"<Hashtag(tag_id={self.tag_id}, tag_label='{self.tag_label}', product_id={self.product_id})>"
 
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 class Notification(db.Model):
     __tablename__ = 'Notification'
 
@@ -116,6 +119,9 @@ class Category(db.Model):
 
     def __repr__(self):
         return f"<Category(category_id={self.category_id}, category_name='{self.category_name}', prod_id={self.prod_id})>"
+    
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 class Subcategory(db.Model):
     __tablename__ = 'Subcategory'
@@ -127,6 +133,9 @@ class Subcategory(db.Model):
 
     def __repr__(self):
         return f"<Subcategory(subcategory_id={self.subcategory_id}, subcategory_name='{self.subcategory_name}', category_id={self.category_id})>"
+    
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 class User_Image(db.Model):
     __tablename__ = 'User_Image'
@@ -150,6 +159,9 @@ class Product_Image(db.Model):
     def __repr__(self):
         return f"<Product_Image(image_id={self.image_id}, image_url='{self.image_url}', prod_id={self.prod_id}, image_caption='{self.image_caption}')>"
 
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 class Seller(db.Model):
     __tablename__ = 'Seller'
 
@@ -166,7 +178,7 @@ class Review(db.Model):
     review_id = Column(Integer, primary_key=True, autoincrement=True)
     rating = Column(Enum('1', '2', '3', '4', '5', name='rating'), nullable=False)
     review_text = Column(String(255))
-    date_of_review = Column(DateTime, nullable=False, default=datetime.utcnow)
+    date_of_review = Column(TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
 
     def __repr__(self):
         return f"<Review(review_id={self.review_id}, rating='{self.rating}', review_text='{self.review_text}', date_of_review='{self.date_of_review}')>"
@@ -176,7 +188,7 @@ class Devices(db.Model):
 
     device_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('User.user_id'), nullable=False)
-    date_time_login = Column(DateTime, nullable=False, default=datetime.utcnow)
+    date_time_login = Column(TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
     device_ip = Column(String(40), nullable=False)
     device_user_agent = Column(Text, nullable=False)
 
@@ -188,7 +200,7 @@ class App_Feedback(db.Model):
 
     feedback_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('User.user_id'), nullable=False)
-    feedback_time = Column(DateTime, nullable=False, default=datetime.utcnow)
+    feedback_time = Column(TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
     feedback_rating = Column(Enum('1', '2', '3', '4', '5', name='feedback_rating'), nullable=False)
     feedback_text = Column(Text)
 
