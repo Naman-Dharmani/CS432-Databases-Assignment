@@ -535,7 +535,7 @@ def get_categories():
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
     
-@app.route('/subcategories/<c_id>', methods = ['GET'])
+@app.route('/subcategory/<c_id>', methods = ['GET'])
 def get_subcategories(c_id):
 
     try:
@@ -544,6 +544,18 @@ def get_subcategories(c_id):
     
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/subcategories', methods = ['GET'])
+def get_all_subcats():
+
+    try:
+        entries = Subcategory.query.all()
+        return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
+    
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+
+
 
 
     
