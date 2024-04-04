@@ -43,18 +43,21 @@ def home():
 def get_products():
     # Retriving the page number from the query string
     try:
-        page = request.args.get('page', 1, type=int)
+        page_num = request.args.get('page', 1, type=int)
         # per_page is the max number of products to be shown
         # If there are more products, the has_next attribute will be True
         # IF there are fewer products, the has_next attribute will be False
-        products = Product.query.paginate(
-            page=page, per_page=pagination_per_page)
-        products_json = [product.to_dict() for product in products.items]
+        page = Product.query.paginate(
+            page=page_num, per_page=pagination_per_page)
+        products_json = [product.to_dict() for product in page.items]
 
         return make_response(
             jsonify({
                     'products': products_json,
-                    'hasnext': products.has_next  # To Indicate if there are more pages
+                    'has_next': page.has_next,  # To Indicate if there are more pages
+                    'total': page.total,
+                    'page_num': page.page,
+                    'per_page': page.per_page
                     }), 200)
 
     except Exception as e:
@@ -147,13 +150,17 @@ def product(id):
 
             # If product is found, get the other details
             category = Category.query.filter_by(prod_id=id).first().to_dict()
-            subcategory = Subcategory.query.filter_by(category_id=category['category_id']).first().to_dict()
-            hashtags = [hashtag.to_dict()['tag_label'] for hashtag in Hashtag.query.filter_by(product_id=id).all()]
-            product_image = Product_Image.query.filter_by(prod_id=id).first().to_dict()
+            subcategory = Subcategory.query.filter_by(
+                category_id=category['category_id']).first().to_dict()
+            hashtags = [hashtag.to_dict()['tag_label']
+                        for hashtag in Hashtag.query.filter_by(product_id=id).all()]
+            product_image = Product_Image.query.filter_by(
+                prod_id=id).first().to_dict()
 
             hashtags = dict(tag_label=hashtags)
-                
-            required_data= {**required_prod, **category, **subcategory, **hashtags, **product_image}
+
+            required_data = {**required_prod, **category,
+                             **subcategory, **hashtags, **product_image}
             # print(required_data)
             return make_response(jsonify(required_data), 200)
         except Exception as e:
@@ -168,15 +175,15 @@ def product(id):
 
             # Separating data for each table
             product_data = {key: value for key, value in data.items(
-                            ) if key in Product.__table__.columns}
+            ) if key in Product.__table__.columns}
             category_data = {key: value for key, value in data.items(
-                            ) if key in Category.__table__.columns}
+            ) if key in Category.__table__.columns}
             subcategory_data = {key: value for key, value in data.items(
-                            ) if key in Subcategory.__table__.columns}
+            ) if key in Subcategory.__table__.columns}
             hashtag_data = {key: value for key, value in data.items(
-                            ) if key in Hashtag.__table__.columns}
+            ) if key in Hashtag.__table__.columns}
             product_image_data = {key: value for key, value in data.items(
-                            ) if key in Product_Image.__table__.columns}
+            ) if key in Product_Image.__table__.columns}
 
             # Updating the product attributes
             for key, value in product_data.items():
@@ -245,7 +252,9 @@ def get_user(u_id):
         user = User.query.get(u_id)
         if user is None:
             return make_response(jsonify({'message': 'User not found'}), 404)
-        return make_response(jsonify(user.to_dict()), 200)
+        res = user.to_dict()
+        del res['password']
+        return make_response(jsonify(res), 200)
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
 
@@ -260,7 +269,9 @@ def update_user(u_id):
         for key, value in data.items():
             setattr(user, key, value)
         db.session.commit()
-        return make_response(jsonify(user.to_dict()), 200)
+        res = user.to_dict()
+        del res['password']
+        return make_response(jsonify(res), 200)
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
 
@@ -273,7 +284,7 @@ def delete_user(u_id):
             return make_response(jsonify({'message': 'User not found'}), 404)
         db.session.delete(user)
         db.session.commit()
-        return make_response(jsonify({'message': 'User deleted'}))
+        return make_response(jsonify({'message': 'User deleted'}), 200)
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
 
@@ -287,7 +298,6 @@ def get_user_listings(u_id):
         return make_response(jsonify({'error': str(e)}), 500)
 
 
-
 # <---------------------------------------------App Feedback----------------------------------------------------->
 @app.route('/app/feedback', methods=['POST'])
 def app_feedback():
@@ -295,7 +305,7 @@ def app_feedback():
         # user_id = current_user.get_id()
         user_id = 2
         data = request.get_json()
-        feedback = App_Feedback(user_id=user_id, 
+        feedback = App_Feedback(user_id=user_id,
                                 feedback_rating=data['rating'],
                                 feedback_text=data['feedback_text']
                                 )
@@ -304,37 +314,41 @@ def app_feedback():
         return make_response(jsonify({'message': 'Feedback submitted'}), 201)
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
-    
+
 
 # <---------------------------------------------Transaction Routes----------------------------------------------------->
 
-@app.route('/all_users', methods = ['GET'])
+@app.route('/all_users', methods=['GET'])
 def get_all_users():
     users = User.query.all()
     return make_response(jsonify([user.to_dict() for user in users]), 200)
+
 
 @app.route('/user/<u_id>/transactions', methods=['GET'])
 def all_transactions(u_id):
 
     try:
-        transactions = Transaction.query.filter(or_(Transaction.buyer_id == u_id, Transaction.seller_id == u_id)).all()
+        transactions = Transaction.query.filter(
+            or_(Transaction.buyer_id == u_id, Transaction.seller_id == u_id)).all()
         return make_response(jsonify([transaction.to_dict() for transaction in transactions]), 200)
-        
+
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
-    
-@app.route('/user/transactions/<t_id>', methods = ['GET', 'PUT'])
+
+
+@app.route('/user/transactions/<t_id>', methods=['GET', 'PUT'])
 def get_transaction_details(t_id):
-    
-    #Add check for user accessibility
+
+    # Add check for user accessibility
     try:
-        if(request.method == 'GET'):
-        
-            transaction = Transaction.query.filter_by(transaction_id = t_id).first()
+        if (request.method == 'GET'):
+
+            transaction = Transaction.query.filter_by(
+                transaction_id=t_id).first()
             return make_response(transaction.to_dict(), 200)
-                        
+
         else:
-        
+
             transaction = Transaction.query.get(t_id)
             if transaction is None:
                 return make_response(jsonify({'message': 'Transaction not found'}), 404)
@@ -343,11 +357,12 @@ def get_transaction_details(t_id):
                 setattr(transaction, key, value)
             db.session.commit()
             return make_response(jsonify(transaction.to_dict()), 200)
-        
+
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
 
-@app.route('/user/new_transaction', methods = ['POST'])
+
+@app.route('/user/new_transaction', methods=['POST'])
 def new_transaction():
 
     try:
@@ -361,7 +376,8 @@ def new_transaction():
             selling_price = transaction_details['selling_price']
             quantity = transaction_details['quantity']
 
-            new_entry = Transaction(buyer_id = buyer_id, seller_id = seller_id, prod_id = prod_id, transaction_date = transaction_date , selling_price = selling_price, quantity= quantity)
+            new_entry = Transaction(buyer_id=buyer_id, seller_id=seller_id, prod_id=prod_id,
+                                    transaction_date=transaction_date, selling_price=selling_price, quantity=quantity)
             db.session.add(new_entry)
             db.session.commit()
 
@@ -370,28 +386,30 @@ def new_transaction():
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
 
-@app.route('/user/review/<t_id>', methods = ['POST', 'PUT'])
+
+@app.route('/user/review/<t_id>', methods=['POST', 'PUT'])
 def review_trans(t_id):
 
     try:
-        if(request.method == 'POST'):
+        if (request.method == 'POST'):
             review_details = request.form.to_dict()
             review_text = review_details['text']
             review_rating = review_details['rating']
             date_of_review = datetime.utcnow
 
-            new_entry = Review(rating = review_rating, date_of_review = date_of_review, review_text = review_text)
+            new_entry = Review(
+                rating=review_rating, date_of_review=date_of_review, review_text=review_text)
             db.session.add(new_entry)
             db.session.commit()
 
             # Change the entry in the corresponding transaction
-            transaction = Transaction.query.filter_by(transaction_id = t_id)
+            transaction = Transaction.query.filter_by(transaction_id=t_id)
             transaction.review_id = new_entry.review_id
             db.session.add(transaction)
             db.session.commit()
-        
+
             return make_response(jsonify({"message": "Review submitted successfully!"}), 201)
-         
+
         else:
 
             transaction = Transaction.query.get(t_id)
@@ -406,36 +424,41 @@ def review_trans(t_id):
 
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
-    
+
 # <---------------------------------------------Chat Routes----------------------------------------------------->
 
-@app.route('/user/senders/<u_id>', methods = ['GET'])
+
+@app.route('/user/senders/<u_id>', methods=['GET'])
 def all_senders(u_id):
 
     try:
-        entries = ChatSystem.query.join(Listing, Listing.prod_id == ChatSystem.prod_id).filter(Listing.user_id == u_id).all()
+        entries = ChatSystem.query.join(
+            Listing, Listing.prod_id == ChatSystem.prod_id).filter(Listing.user_id == u_id).all()
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
-        
+
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
-    
-@app.route('/user/senders/<u_id>/<p_id>', methods = ['GET'])
 
+
+@app.route('/user/senders/<u_id>/<p_id>', methods=['GET'])
 def prod_senders(u_id, p_id):
 
     try:
-        entries = ChatSystem.query.join(Listing, Listing.prod_id == ChatSystem.prod_id).filter(and_(Listing.user_id == u_id, Listing.prod_id == p_id)).all()
+        entries = ChatSystem.query.join(Listing, Listing.prod_id == ChatSystem.prod_id).filter(
+            and_(Listing.user_id == u_id, Listing.prod_id == p_id)).all()
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
-    
+
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
 
-@app.route('/user/senders/product/<p_id>/<s_id>', methods = ['GET'])
+
+@app.route('/user/senders/product/<p_id>/<s_id>', methods=['GET'])
 def messages_see(p_id, s_id):
 
     try:
-  
-        entries = Chat.query.join(ChatSystem, ChatSystem.message_id == Chat.message_id).filter(and_(ChatSystem.sender_id == s_id, ChatSystem.prod_id == p_id)).all()
+
+        entries = Chat.query.join(ChatSystem, ChatSystem.message_id == Chat.message_id).filter(
+            and_(ChatSystem.sender_id == s_id, ChatSystem.prod_id == p_id)).all()
 
         for entry in entries:
             message = Chat.query.get(entry.message_id)
@@ -443,11 +466,12 @@ def messages_see(p_id, s_id):
 
         db.session.commit()
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
-        
+
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
 
-@app.route('/user/send/<s_id>/<r_id>/<p_id>', methods = ["POST"])
+
+@app.route('/user/send/<s_id>/<r_id>/<p_id>', methods=["POST"])
 def messages_send(p_id, s_id, r_id):
 
     try:
@@ -456,15 +480,17 @@ def messages_send(p_id, s_id, r_id):
             chat_details = request.form.to_dict()
             message = chat_details['text']
             chat_time = datetime.now()
-            
-            new_entry1 = Chat(text = message, chat_time = chat_time, read_status = False)
+
+            new_entry1 = Chat(
+                text=message, chat_time=chat_time, read_status=False)
             db.session.add(new_entry1)
 
-            new_entry2 = ChatSystem(message_id = new_entry1.message_id, sender_id = s_id, reciever_id = r_id, prod_id = p_id)
+            new_entry2 = ChatSystem(
+                message_id=new_entry1.message_id, sender_id=s_id, reciever_id=r_id, prod_id=p_id)
             db.session.add(new_entry2)
             db.session.commit()
 
         return make_response(jsonify({'message': "Message sent successfully!"}), 201)
-    
+
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)

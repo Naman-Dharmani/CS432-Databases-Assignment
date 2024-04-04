@@ -1,0 +1,54 @@
+@baseURL = http://localhost:5000
+
+### Service Test Route
+GET {{baseURL}}/
+
+### Authentication Service
+# @name auth
+POST {{baseURL}}/login
+Content-Type: application/json
+Accept: application/json
+{
+  "email": {{$processEnv USER_EMAIL}},
+  "password": {{$processEnv USER_PASSWORD}},
+}
+
+### Variable Response
+@accessToken = {{auth.response.body}}
+
+##########################
+##### Product Routes #####
+##########################
+
+###
+GET {{baseURL}}/products
+
+###
+GET {{baseURL}}/products?page=3
+
+###
+POST {{baseURL}}/product
+Content-Type: application/json
+# Authorization: Bearer {{accessToken}}
+{
+  "prod_title": ,
+  "description": ,
+  "prod_condition": ,
+  "listed_price": ,
+  "quantity": ,
+  "category_name": "",
+  "subcategory_name": "",
+}
+
+#######################
+##### User Routes #####
+#######################
+
+### Fetch User Details
+@userId = 10
+GET {{baseURL}}/user/{{userId}}
+
+
+##############################
+##### Transaction Routes #####
+##############################
