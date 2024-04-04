@@ -142,23 +142,32 @@ def product(id):
     if request.method == 'GET':
         try:
             required_prod = Product.query.filter_by(
-                prod_id=id).first().to_dict()
+                    prod_id=id).first().to_dict()
 
             # If the product is not found, return a 404 error
             if required_prod == None:
                 return make_response({"message": 'Product not found'}, 404)
 
             # If product is found, get the other details
-            category = Category.query.filter_by(prod_id=id).first().to_dict()
+            subcategory_id = required_prod.get('subcategory_id')
             subcategory = Subcategory.query.filter_by(
-                category_id=category['category_id']).first().to_dict()
-            # hashtags = [hashtag.to_dict()['tag_label']
-            #             for hashtag in Hashtag.query.filter_by(product_id=id).all()].
-            hashtags = Hashtag.query.filter_by(product_id=id).all().to_dict()
+                subcategory_id=subcategory_id).first().to_dict()
+
+            
+            category_id = subcategory.get('category_id')
+            category = Category.query.filter_by(category_id=category_id).first().to_dict()
+
+            
+            hashtags = [hashtag.to_dict()['tag_label']
+                        for hashtag in Hashtag.query.filter_by(product_id=id).all()]
+
+            
+            # hashtags = Hashtag.query.filter_by(product_id=id).all().to_dict()
             product_image = Product_Image.query.filter_by(
                 prod_id=id).first().to_dict()
 
-            # hashtags = dict(tag_label=hashtags)
+
+            hashtags = dict(tag_label=hashtags)
 
             required_data = {**required_prod, **category,
                              **subcategory, **hashtags, **product_image}

@@ -1,7 +1,7 @@
 import random
 import string
 from . import db
-from .models import Category, User, Product, Hashtag, Subcategory
+from .models import Category, User, Product, Hashtag, Subcategory, Product_Image
 from app import app
 
 def random_string(length=10):
@@ -41,6 +41,14 @@ def seed_db():
         category_id=1
     )
     db.session.add(subcategory)
+
+    for i in range(10):
+        product_image = Product_Image(
+            image_url='/placeholder.svg',
+            prod_id=i+1,
+            image_caption='This is a placeholder image'    
+        )
+        db.session.add(product_image)
 
     # Create 10 Products
     for _ in range(10):
