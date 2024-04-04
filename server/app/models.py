@@ -28,14 +28,14 @@ class User(UserMixin, db.Model):
     language_preference = Column(Enum('English', 'Hindi'), default='English')
     notification_preference = Column(Enum('All', 'Chat', 'None'), default='All')
     user_images = relationship('User_Image', backref='user', lazy='dynamic', cascade="all,delete")
-    products = relationship('Product', backref='user', lazy='dynamic', cascade="all,delete")
     notifications = relationship('Notification', backref='user', lazy='dynamic', cascade="all,delete")
     devices = relationship('Devices', backref='user', lazy='dynamic', cascade="all,delete")
-    # app_feedback = relationship('App_Feedback', backref='user', lazy='dynamic', cascade="all,delete")
-    # reviews = relationship('Review', backref='user', lazy='dynamic', cascade="all,delete")
     interests = relationship('Interest', backref='user', lazy='dynamic', cascade="all,delete")
     listings = relationship('Listing', backref='user', lazy='dynamic', cascade="all,delete")
     seller = relationship('Seller', backref='user', lazy='dynamic', cascade="all,delete")
+    # products = relationship('Product', backref='user', lazy='dynamic', cascade="all,delete")
+    # app_feedback = relationship('App_Feedback', backref='user', lazy='dynamic', cascade="all,delete")
+    # reviews = relationship('Review', backref='user', lazy='dynamic', cascade="all,delete")
     # transactions = relationship('Transaction', backref='user', lazy='dynamic', cascade="all,delete")
     # chat_system = relationship('ChatSystem', backref='user', lazy='dynamic', cascade="all,delete")
 
@@ -64,6 +64,7 @@ class Product(db.Model):
     
     __tablename__ = 'Product'
     prod_id = Column(Integer, primary_key=True, autoincrement=True)
+    # user_id = Column(Integer, ForeignKey('User.user_id'))
     prod_title = Column(String(30), nullable=False)
     description = Column(String(400), nullable=False)
     status = Column(Enum('Available', 'Sold'), nullable=False, default='Available')
@@ -73,13 +74,16 @@ class Product(db.Model):
     date_listed = Column(TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
     date_modified = Column(TIMESTAMP)
     flagging = Column(Integer, default=0)
-    hashtags = relationship('Hashtag', backref='product', lazy='dynamic', cascade="all,delete")
-    categories = relationship('Category', backref='product', lazy='dynamic', cascade="all,delete")
-    product_images = relationship('Product_Image', backref='product', lazy='dynamic', cascade="all,delete")
-    seller = relationship('Seller', backref='product', lazy='dynamic', cascade="all,delete")
+    subcategory_id = Column(Integer, ForeignKey('Subcategory.subcategory_id'), nullable=False)
+
+    hashtags = relationship('Hashtag', backref='product_hashtags', lazy='dynamic', cascade="all,delete")
+    product_images = relationship('Product_Image', backref='product_images', lazy='dynamic', cascade="all,delete")
+    interests = relationship('Interest', backref='product_interests', lazy='dynamic', cascade="all,delete")
+    listings = relationship('Listing', backref='product_listings', lazy='dynamic', cascade="all,delete")
+    subcategory = relationship('Subcategory')
+    # categories = relationship('Category', backref='product_categories', lazy='dynamic', cascade="all,delete")
+    # seller = relationship('Seller', backref='product_seller', lazy='dynamic', cascade="all,delete")
     # transactions = relationship('Transaction', backref='product', lazy='dynamic', cascade="all,delete")
-    interests = relationship('Interest', backref='product', lazy='dynamic', cascade="all,delete")
-    listings = relationship('Listing', backref='product', lazy='dynamic', cascade="all,delete")
     # chat_system = relationship('ChatSystem', backref='product', lazy='dynamic', cascade="all,delete")
 
     def __repr__(self):
@@ -112,7 +116,7 @@ class Hashtag(db.Model):
     tag_id = Column(Integer, primary_key=True, autoincrement=True)
     tag_label = Column(String(27), nullable=False)
     product_id = Column(Integer, ForeignKey('Product.prod_id'), nullable=False)
-    product = relationship("Product")
+    product = relationship("Product", back_populates="hashtags", overlaps="hashtags,product_hashtags")
 
     def __repr__(self):
         return f"<Hashtag(tag_id={self.tag_id}, tag_label='{self.tag_label}', product_id={self.product_id})>"
@@ -128,7 +132,7 @@ class Notification(db.Model):
     time = Column(TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
     read_status = Column(Boolean, nullable=False, default=False)
     user_id = Column(Integer, ForeignKey('User.user_id'), nullable=False)
-    user = relationship("User")
+    # user = relationship("User")
 
     def __repr__(self):
         return f"<Notification(notification_id={self.notification_id}, content='{self.content}', time='{self.time}', read_status={self.read_status}, user_id={self.user_id})>"
@@ -138,9 +142,9 @@ class Category(db.Model):
 
     category_id = Column(Integer, primary_key=True, autoincrement=True)
     category_name = Column(String(50), nullable=False)
-    prod_id = Column(Integer, ForeignKey('Product.prod_id'), nullable=False)
-    product = relationship("Product")
-    subcategories = relationship('Subcategory', backref='category', lazy='dynamic', cascade="all,delete")
+    # prod_id = Column(Integer, ForeignKey('Product.prod_id'), nullable=False)
+    # product = relationship('Product', back_populates='categories', overlaps='categories,product_categories')
+    subcategories = relationship('Subcategory', backref='category_subcategory', lazy='dynamic', cascade="all,delete")
 
     def __repr__(self):
         return f"<Category(category_id={self.category_id}, category_name='{self.category_name}', prod_id={self.prod_id})>"
@@ -154,7 +158,8 @@ class Subcategory(db.Model):
     subcategory_id = Column(Integer, primary_key=True, autoincrement=True)
     subcategory_name = Column(String(50), nullable=False)
     category_id = Column(Integer, ForeignKey('Category.category_id'), nullable=False)
-    category = relationship("Category")
+    category = relationship("Category", back_populates="subcategories", overlaps="subcategories,category_subcategory")
+    products = relationship('Product')
 
     def __repr__(self):
         return f"<Subcategory(subcategory_id={self.subcategory_id}, subcategory_name='{self.subcategory_name}', category_id={self.category_id})>"
@@ -190,7 +195,7 @@ class Product_Image(db.Model):
 class Seller(db.Model):
     __tablename__ = 'Seller'
 
-    user_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('User.user_id'), primary_key=True)
     avg_seller_rating = Column(DECIMAL(10, 2))
     preferred_payment_method = Column(Enum('Cash', 'UPI', 'Net Banking', name='payment_method'), nullable=False, default='UPI')
 

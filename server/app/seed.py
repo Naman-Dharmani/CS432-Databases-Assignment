@@ -1,7 +1,7 @@
 import random
 import string
 from . import db
-from .models import User, Product, Hashtag
+from .models import Category, User, Product, Hashtag, Subcategory
 from app import app
 
 def random_string(length=10):
@@ -30,6 +30,18 @@ def seed_db():
         user.set_password(user.password)
         db.session.add(user)
 
+    # Create a Category
+    category = Category(
+        category_name='Electronics'
+    )
+    db.session.add(category)
+
+    subcategory = Subcategory(
+        subcategory_name='Electronics',
+        category_id=1
+    )
+    db.session.add(subcategory)
+
     # Create 10 Products
     for _ in range(10):
         product = Product(
@@ -37,7 +49,8 @@ def seed_db():
             description=random_string(100),
             prod_condition=random.choice(['New', 'Used']),
             listed_price=random.uniform(0, 1000),
-            quantity=random.randint(1, 100)
+            quantity=random.randint(1, 100),
+            subcategory_id=1
         )
         db.session.add(product)
 

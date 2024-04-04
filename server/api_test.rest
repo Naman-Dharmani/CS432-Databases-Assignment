@@ -40,6 +40,12 @@ Content-Type: application/json
   "subcategory_name": "",
 }
 
+###
+DELETE {{baseURL}}/product/1
+
+###
+GET {{baseURL}}/product/1
+
 #######################
 ##### User Routes #####
 #######################
