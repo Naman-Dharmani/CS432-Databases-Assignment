@@ -427,10 +427,10 @@ def review_trans(t_id):
 
     try:
         if (request.method == 'POST'):
-            review_details = request.form.to_dict()
+            review_details = request.get_json()
             review_text = review_details['text']
             review_rating = review_details['rating']
-            date_of_review = datetime.utcnow
+            date_of_review = datetime.utcnow()
 
             new_entry = Review(
                 rating=review_rating, date_of_review=date_of_review, review_text=review_text)
@@ -438,7 +438,7 @@ def review_trans(t_id):
             db.session.commit()
 
             # Change the entry in the corresponding transaction
-            transaction = Transaction.query.filter_by(transaction_id=t_id)
+            transaction = Transaction.query.get(t_id)
             transaction.review_id = new_entry.review_id
             db.session.add(transaction)
             db.session.commit()
@@ -512,13 +512,14 @@ def messages_send(p_id, s_id, r_id):
     try:
         if request.method == 'POST':
 
-            chat_details = request.form.to_dict()
+            chat_details = request.get_json()
             message = chat_details['text']
             chat_time = datetime.now()
 
             new_entry1 = Chat(
                 text=message, chat_time=chat_time, read_status=False)
             db.session.add(new_entry1)
+            db.session.commit()
 
             new_entry2 = ChatSystem(
                 message_id=new_entry1.message_id, sender_id=s_id, reciever_id=r_id, prod_id=p_id)
@@ -531,7 +532,6 @@ def messages_send(p_id, s_id, r_id):
         return make_response(jsonify({'error': str(e)}), 500)
 
 # <---------------------------------------------Category Routes----------------------------------------------------->
-
 
 @app.route('/categories', methods=['GET'])
 def get_categories():
