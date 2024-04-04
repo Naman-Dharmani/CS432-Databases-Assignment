@@ -4,15 +4,18 @@ from . import db
 from .models import Category, User, Product, Hashtag, Subcategory, Product_Image
 from app import app
 
+
 def random_string(length=10):
     """Generate a random string of fixed length """
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
 
+
 def random_number(length=10):
     """Generate a random number of fixed length """
     numbers = string.digits
     return ''.join(random.choice(numbers) for i in range(length))
+
 
 def seed_db():
     # Create 10 Users
@@ -32,16 +35,16 @@ def seed_db():
 
     # Create a Category
     categories = [
-    Category(category_name='Electronics'),
-    Category(category_name='Furniture'),
-    Category(category_name='Clothing'),
-    Category(category_name='Books'),
-    Category(category_name='Toys'),
-    Category(category_name='Sports'),
-    Category(category_name='Beauty'),
-    Category(category_name='Home Decor'),
-    Category(category_name='Accessories'),
-    Category(category_name='Jewelry')
+        Category(category_name='Electronics'),
+        Category(category_name='Furniture'),
+        Category(category_name='Clothing'),
+        Category(category_name='Books'),
+        Category(category_name='Toys'),
+        Category(category_name='Sports'),
+        Category(category_name='Beauty'),
+        Category(category_name='Home Decor'),
+        Category(category_name='Accessories'),
+        Category(category_name='Jewelry')
     ]
 
     for category in categories:
@@ -50,16 +53,16 @@ def seed_db():
     db.session.commit()
 
     subcategories = [
-    Subcategory(subcategory_name='Smartphones', category_id=1),
-    Subcategory(subcategory_name='Laptops', category_id=2),
-    Subcategory(subcategory_name='Tablets', category_id=3),
-    Subcategory(subcategory_name='Headphones', category_id=4),
-    Subcategory(subcategory_name='Cameras', category_id=5),
-    Subcategory(subcategory_name='Televisions', category_id=6),
-    Subcategory(subcategory_name='Smart Watches', category_id=7),
-    Subcategory(subcategory_name='Gaming Consoles', category_id=8),
-    Subcategory(subcategory_name='Accessories', category_id=9),
-    Subcategory(subcategory_name='Home Appliances', category_id=10)
+        Subcategory(subcategory_name='Smartphones', category_id=1),
+        Subcategory(subcategory_name='Laptops', category_id=2),
+        Subcategory(subcategory_name='Tablets', category_id=3),
+        Subcategory(subcategory_name='Headphones', category_id=4),
+        Subcategory(subcategory_name='Cameras', category_id=5),
+        Subcategory(subcategory_name='Televisions', category_id=6),
+        Subcategory(subcategory_name='Smart Watches', category_id=7),
+        Subcategory(subcategory_name='Gaming Consoles', category_id=8),
+        Subcategory(subcategory_name='Accessories', category_id=9),
+        Subcategory(subcategory_name='Home Appliances', category_id=10)
     ]
 
     for subcategory in subcategories:
@@ -67,12 +70,11 @@ def seed_db():
 
     db.session.commit()
 
-
     for i in range(10):
         product_image = Product_Image(
             image_url='/placeholder.svg',
             prod_id=i+1,
-            image_caption='This is a placeholder image'    
+            image_caption='This is a placeholder image'
         )
         db.session.add(product_image)
 
@@ -91,13 +93,14 @@ def seed_db():
     # Create 10 Hashtags
     for _ in range(10):
         hashtag = Hashtag(
-            tag_label=random_string(7),
+            tag_label='#'+random_string(7),
             product_id=random.randint(1, 10)
         )
         db.session.add(hashtag)
 
     # Commit the changes
     db.session.commit()
+
 
 if __name__ == '__main__':
     seed_db()

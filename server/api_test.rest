@@ -16,6 +16,15 @@ Accept: application/json
 ### Variable Response
 @accessToken = {{auth.response.body}}
 
+### Category Fetch Route
+GET {{baseURL}}/categories
+
+### Single Subcategory Fetch
+GET {{baseURL}}/subcategory/4
+
+### Subcategories Fetch Route
+GET {{baseURL}}/subcategories
+
 ##########################
 ##### Product Routes #####
 ##########################
@@ -26,10 +35,14 @@ GET {{baseURL}}/products
 ###
 GET {{baseURL}}/products?page=3
 
-###
+### View a Single Product
+GET {{baseURL}}/product/2
+
+### Create a New Product
 POST {{baseURL}}/product
 Content-Type: application/json
 # Authorization: Bearer {{accessToken}}
+
 {
   "prod_title": ,
   "description": ,
@@ -40,19 +53,23 @@ Content-Type: application/json
   "subcategory_name": "",
 }
 
-###
-DELETE {{baseURL}}/product/1
+### Update a Product
+PUT {{baseURL}}/product/2
+Content-Type: application/json
 
-###
-GET {{baseURL}}/product/1
+{
+  "tag_label": "#apple, #appleProduct"
+}
+
+### Delete a Product
+DELETE {{baseURL}}/product/1
 
 #######################
 ##### User Routes #####
 #######################
 
 ### Fetch User Details
-@userId = 10
-GET {{baseURL}}/user/{{userId}}
+GET {{baseURL}}/user/10
 
 
 ##############################

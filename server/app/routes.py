@@ -38,6 +38,7 @@ def home():
 #   --> Category, Subcategory, Hashtag DONE
 # TODO: DELETE method - need to enable cascading for delete in models.py
 
+
 def get_product(id):
     product = Product.query.options(
         joinedload(Product.subcategory).joinedload(Subcategory.category),
@@ -51,12 +52,16 @@ def get_product(id):
     product_dict = product.to_dict()
     product_dict['subcategory'] = product.subcategory.to_dict()
     product_dict['category'] = product.subcategory.category.to_dict()
-    product_dict['product_images'] = [image.to_dict() for image in product.product_images]
-    product_dict['hashtags'] = [hashtag.to_dict()['tag_label'] for hashtag in product.hashtags]
+    product_dict['product_images'] = [image.to_dict()
+                                      for image in product.product_images]
+    product_dict['hashtags'] = [hashtag.to_dict()['tag_label']
+                                for hashtag in product.hashtags]
 
     return product_dict
 
 # Route to get all products with pagination
+
+
 @app.route('/products', methods=['GET'])
 def get_products():
     # Retriving the page number from the query string
@@ -67,7 +72,8 @@ def get_products():
         # IF there are fewer products, the has_next attribute will be False
         page = Product.query.paginate(
             page=page_num, per_page=pagination_per_page)
-        products_json = [get_product(product.prod_id) for product in page.items]
+        products_json = [get_product(product.prod_id)
+                         for product in page.items]
         # products_json = [product.to_dict() for product in page.items]
 
         return make_response(
@@ -101,9 +107,19 @@ def create_product():
                           description=data['description'],
                           prod_condition=data['prod_condition'],
                           listed_price=data['listed_price'],
-                          quantity=data['quantity']
+                          quantity=data['quantity'],
+                          # the drop down option should be converted to a number before sending
+                          subcategory_id=data['subcategory_id']
                           )
         db.session.add(product)
+        db.session.commit()
+
+        # Need the category_id inorder to add the subcategory
+        category_id = category.category_id
+        sub_category = Subcategory(subcategory_name=data['subcategory_name'],
+                                   category_id=category_id
+                                   )
+        db.session.add(sub_category)
         db.session.commit()
 
         # Need the prod_id inorder to add the category
@@ -113,14 +129,6 @@ def create_product():
                             prod_id=product_id
                             )
         db.session.add(category)
-        db.session.commit()
-
-        # Need the category_id inorder to add the subcategory
-        category_id = category.category_id
-        sub_category = Subcategory(subcategory_name=data['subcategory_name'],
-                                   category_id=category_id
-                                   )
-        db.session.add(sub_category)
         db.session.commit()
 
         if 'hashtag' in data:
@@ -155,6 +163,8 @@ def create_product():
         return make_response(jsonify({'error': str(e)}), 500)
 
 # Route to get/update/delete a product by id
+
+
 @app.route('/product/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def product(id):
     if request.method == 'GET':
@@ -171,19 +181,15 @@ def product(id):
             # subcategory = Subcategory.query.filter_by(
             #     subcategory_id=subcategory_id).first().to_dict()
 
-            
             # category_id = subcategory.get('category_id')
             # category = Category.query.filter_by(category_id=category_id).first().to_dict()
 
-            
             # hashtags = [hashtag.to_dict()['tag_label']
             #             for hashtag in Hashtag.query.filter_by(product_id=id).all()]
 
-            
             # # hashtags = Hashtag.query.filter_by(product_id=id).all().to_dict()
             # product_image = Product_Image.query.filter_by(
             #     prod_id=id).first().to_dict()
-
 
             # hashtags = dict(tag_label=hashtags)
 
@@ -205,10 +211,10 @@ def product(id):
             # Separating data for each table
             product_data = {key: value for key, value in data.items(
             ) if key in Product.__table__.columns}
-            category_data = {key: value for key, value in data.items(
-            ) if key in Category.__table__.columns}
-            subcategory_data = {key: value for key, value in data.items(
-            ) if key in Subcategory.__table__.columns}
+            # category_data = {key: value for key, value in data.items(
+            # ) if key in Category.__table__.columns}
+            # subcategory_data = {key: value for key, value in data.items(
+            # ) if key in Subcategory.__table__.columns}
             hashtag_data = {key: value for key, value in data.items(
             ) if key in Hashtag.__table__.columns}
             product_image_data = {key: value for key, value in data.items(
@@ -223,18 +229,18 @@ def product(id):
             product.date_modified = datetime.now(
                 utc).strftime('%Y-%m-%d %H:%M:%S')
 
-            # Updating the category attributes
-            category = Category.query.filter_by(prod_id=id).first()
-            if category:
-                for key, value in category_data.items():
-                    setattr(category, key, value)
+            # # Updating the category attributes
+            # category = Category.query.filter_by(prod_id=id).first()
+            # if category:
+            #     for key, value in category_data.items():
+            #         setattr(category, key, value)
 
-            # Updating the subcategory attributes
-            subcategory = Subcategory.query.filter_by(
-                category_id=category.category_id).first()
-            if subcategory:
-                for key, value in subcategory_data.items():
-                    setattr(subcategory, key, value)
+            # # Updating the subcategory attributes
+            # subcategory = Subcategory.query.filter_by(
+            #     category_id=category.category_id).first()
+            # if subcategory:
+            #     for key, value in subcategory_data.items():
+            #         setattr(subcategory, key, value)
 
             # Updating the hashtags
             Hashtag.query.filter_by(product_id=id).delete()
@@ -456,6 +462,7 @@ def review_trans(t_id):
 
 # <---------------------------------------------Chat Routes----------------------------------------------------->
 
+
 @app.route('/user/senders/<u_id>', methods=['GET'])
 def all_senders(u_id):
 
@@ -524,38 +531,36 @@ def messages_send(p_id, s_id, r_id):
         return make_response(jsonify({'error': str(e)}), 500)
 
 # <---------------------------------------------Category Routes----------------------------------------------------->
-    
-@app.route('/categories', methods = ['GET'])
+
+
+@app.route('/categories', methods=['GET'])
 def get_categories():
 
     try:
         entries = Category.query.all()
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
-    
+
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
-    
-@app.route('/subcategory/<c_id>', methods = ['GET'])
+
+
+@app.route('/subcategory/<c_id>', methods=['GET'])
 def get_subcategories(c_id):
 
     try:
-        entries = Subcategory.query.filter_by(category_id = c_id)
+        entries = Subcategory.query.filter_by(category_id=c_id)
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
-    
+
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
-    
-@app.route('/subcategories', methods = ['GET'])
+
+
+@app.route('/subcategories', methods=['GET'])
 def get_all_subcats():
 
     try:
         entries = Subcategory.query.all()
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
-    
+
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
-
-
-
-
-    
