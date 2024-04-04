@@ -31,16 +31,42 @@ def seed_db():
         db.session.add(user)
 
     # Create a Category
-    category = Category(
-        category_name='Electronics'
-    )
-    db.session.add(category)
+    categories = [
+    Category(category_name='Electronics'),
+    Category(category_name='Furniture'),
+    Category(category_name='Clothing'),
+    Category(category_name='Books'),
+    Category(category_name='Toys'),
+    Category(category_name='Sports'),
+    Category(category_name='Beauty'),
+    Category(category_name='Home Decor'),
+    Category(category_name='Accessories'),
+    Category(category_name='Jewelry')
+    ]
 
-    subcategory = Subcategory(
-        subcategory_name='Electronics',
-        category_id=1
-    )
-    db.session.add(subcategory)
+    for category in categories:
+        db.session.add(category)
+
+    db.session.commit()
+
+    subcategories = [
+    Subcategory(subcategory_name='Smartphones', category_id=1),
+    Subcategory(subcategory_name='Laptops', category_id=2),
+    Subcategory(subcategory_name='Tablets', category_id=3),
+    Subcategory(subcategory_name='Headphones', category_id=4),
+    Subcategory(subcategory_name='Cameras', category_id=5),
+    Subcategory(subcategory_name='Televisions', category_id=6),
+    Subcategory(subcategory_name='Smart Watches', category_id=7),
+    Subcategory(subcategory_name='Gaming Consoles', category_id=8),
+    Subcategory(subcategory_name='Accessories', category_id=9),
+    Subcategory(subcategory_name='Home Appliances', category_id=10)
+    ]
+
+    for subcategory in subcategories:
+        db.session.add(subcategory)
+
+    db.session.commit()
+
 
     for i in range(10):
         product_image = Product_Image(
