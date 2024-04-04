@@ -3,10 +3,10 @@ from flasgger import swag_from
 from datetime import datetime, timedelta, timezone
 
 from . import app
-from .models import User, Product, Listing, Category, Subcategory, Hashtag, Product_Image, App_Feedback
+from .models import User, Product, Listing, Category, Subcategory, Hashtag, Product_Image, App_Feedback, Chat, ChatSystem, Review, Transaction, Listing
 from . import db
 from . import login_manager, login_user, logout_user, login_required, current_user
-
+from sqlalchemy import or_, and_
 
 pagination_per_page = 4
 
@@ -302,5 +302,169 @@ def app_feedback():
         db.session.add(feedback)
         db.session.commit()
         return make_response(jsonify({'message': 'Feedback submitted'}), 201)
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+
+# <---------------------------------------------Transaction Routes----------------------------------------------------->
+
+@app.route('/all_users', methods = ['GET'])
+def get_all_users():
+    users = User.query.all()
+    return make_response(jsonify([user.to_dict() for user in users]), 200)
+
+@app.route('/user/<u_id>/transactions', methods=['GET'])
+def all_transactions(u_id):
+
+    try:
+        transactions = Transaction.query.filter(or_(Transaction.buyer_id == u_id, Transaction.seller_id == u_id)).all()
+        return make_response(jsonify([transaction.to_dict() for transaction in transactions]), 200)
+        
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/user/transactions/<t_id>', methods = ['GET', 'PUT'])
+def get_transaction_details(t_id):
+    
+    #Add check for user accessibility
+    try:
+        if(request.method == 'GET'):
+        
+            transaction = Transaction.query.filter_by(transaction_id = t_id).first()
+            return make_response(transaction.to_dict(), 200)
+                        
+        else:
+        
+            transaction = Transaction.query.get(t_id)
+            if transaction is None:
+                return make_response(jsonify({'message': 'Transaction not found'}), 404)
+            data = request.get_json()
+            for key, value in data.items():
+                setattr(transaction, key, value)
+            db.session.commit()
+            return make_response(jsonify(transaction.to_dict()), 200)
+        
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+
+@app.route('/user/new_transaction', methods = ['POST'])
+def new_transaction():
+
+    try:
+        if request.method == 'POST':
+
+            transaction_details = request.form.to_dict()
+            buyer_id = transaction_details['buyer_id']
+            seller_id = transaction_details['seller_id']
+            prod_id = transaction_details['prod_id']
+            transaction_date = transaction_details['transaction_date']
+            selling_price = transaction_details['selling_price']
+            quantity = transaction_details['quantity']
+
+            new_entry = Transaction(buyer_id = buyer_id, seller_id = seller_id, prod_id = prod_id, transaction_date = transaction_date , selling_price = selling_price, quantity= quantity)
+            db.session.add(new_entry)
+            db.session.commit()
+
+        return make_response(jsonify({"message": "Transaction recorded successfully"}), 201)
+
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+
+@app.route('/user/review/<t_id>', methods = ['POST', 'PUT'])
+def review_trans(t_id):
+
+    try:
+        if(request.method == 'POST'):
+            review_details = request.form.to_dict()
+            review_text = review_details['text']
+            review_rating = review_details['rating']
+            date_of_review = datetime.utcnow
+
+            new_entry = Review(rating = review_rating, date_of_review = date_of_review, review_text = review_text)
+            db.session.add(new_entry)
+            db.session.commit()
+
+            # Change the entry in the corresponding transaction
+            transaction = Transaction.query.filter_by(transaction_id = t_id)
+            transaction.review_id = new_entry.review_id
+            db.session.add(transaction)
+            db.session.commit()
+        
+            return make_response(jsonify({"message": "Review submitted successfully!"}), 201)
+         
+        else:
+
+            transaction = Transaction.query.get(t_id)
+            review = Review.query.get(transaction.review_id)
+            if review is None:
+                return make_response(jsonify({'message': 'Review not found'}), 404)
+            data = request.get_json()
+            for key, value in data.items():
+                setattr(review, key, value)
+            db.session.commit()
+            return make_response(jsonify(review.to_dict()), 200)
+
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+# <---------------------------------------------Chat Routes----------------------------------------------------->
+
+@app.route('/user/senders/<u_id>', methods = ['GET'])
+def all_senders(u_id):
+
+    try:
+        entries = ChatSystem.query.join(Listing, Listing.prod_id == ChatSystem.prod_id).filter(Listing.user_id == u_id).all()
+        return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
+        
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/user/senders/<u_id>/<p_id>', methods = ['GET'])
+
+def prod_senders(u_id, p_id):
+
+    try:
+        entries = ChatSystem.query.join(Listing, Listing.prod_id == ChatSystem.prod_id).filter(and_(Listing.user_id == u_id, Listing.prod_id == p_id)).all()
+        return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
+    
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+
+@app.route('/user/senders/product/<p_id>/<s_id>', methods = ['GET'])
+def messages_see(p_id, s_id):
+
+    try:
+  
+        entries = Chat.query.join(ChatSystem, ChatSystem.message_id == Chat.message_id).filter(and_(ChatSystem.sender_id == s_id, ChatSystem.prod_id == p_id)).all()
+
+        for entry in entries:
+            message = Chat.query.get(entry.message_id)
+            message.read_status = True
+
+        db.session.commit()
+        return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
+        
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+
+@app.route('/user/send/<s_id>/<r_id>/<p_id>', methods = ["POST"])
+def messages_send(p_id, s_id, r_id):
+
+    try:
+        if request.method == 'POST':
+
+            chat_details = request.form.to_dict()
+            message = chat_details['text']
+            chat_time = datetime.now()
+            
+            new_entry1 = Chat(text = message, chat_time = chat_time, read_status = False)
+            db.session.add(new_entry1)
+
+            new_entry2 = ChatSystem(message_id = new_entry1.message_id, sender_id = s_id, reciever_id = r_id, prod_id = p_id)
+            db.session.add(new_entry2)
+            db.session.commit()
+
+        return make_response(jsonify({'message': "Message sent successfully!"}), 201)
+    
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)

@@ -82,6 +82,9 @@ class Chat(db.Model):
     def __repr__(self):
         return f"<Chat(message_id={self.message_id}, chat_time='{self.chat_time}', text='{self.text}', read_status={self.read_status})>"
 
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    
 class Hashtag(db.Model):
     __tablename__ = 'Hashtag'
 
@@ -183,6 +186,9 @@ class Review(db.Model):
     def __repr__(self):
         return f"<Review(review_id={self.review_id}, rating='{self.rating}', review_text='{self.review_text}', date_of_review='{self.date_of_review}')>"
 
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    
 class Devices(db.Model):
     __tablename__ = 'Devices'
 
@@ -222,6 +228,9 @@ class Transaction(db.Model):
         CheckConstraint('quantity >= 1', name='quantity_check'),
     )
 
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 class Interest(db.Model):
     __tablename__ = 'interests'
 
@@ -234,9 +243,15 @@ class Listing(db.Model):
     user_id = Column(Integer, ForeignKey('User.user_id'), primary_key=True)
     prod_id = Column(Integer, ForeignKey('Product.prod_id'), primary_key=True)
 
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 class ChatSystem(db.Model):
     __tablename__ = 'chat_system'
 
     message_id = Column(Integer, ForeignKey('Chat.message_id'), primary_key=True)
     sender_id = Column(Integer, ForeignKey('User.user_id'), primary_key=True)
     prod_id = Column(Integer, ForeignKey('Product.prod_id'), primary_key=True)
+
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
