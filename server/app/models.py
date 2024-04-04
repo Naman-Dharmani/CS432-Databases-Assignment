@@ -76,8 +76,8 @@ class Product(db.Model):
     flagging = Column(Integer, default=0)
     subcategory_id = Column(Integer, ForeignKey('Subcategory.subcategory_id'), nullable=False)
 
-    hashtags = relationship('Hashtag', backref='product_hashtags', lazy='dynamic', cascade="all,delete")
-    product_images = relationship('Product_Image', backref='product_images', lazy='dynamic', cascade="all,delete")
+    hashtags = relationship('Hashtag', backref='product_hashtags', lazy='joined', cascade="all,delete")
+    product_images = relationship('Product_Image', backref='product_images', lazy='joined', cascade="all,delete")
     interests = relationship('Interest', backref='product_interests', lazy='dynamic', cascade="all,delete")
     listings = relationship('Listing', backref='product_listings', lazy='dynamic', cascade="all,delete")
     subcategory = relationship('Subcategory')

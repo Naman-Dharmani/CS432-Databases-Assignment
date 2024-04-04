@@ -7,6 +7,7 @@ from .models import User, Product, Listing, Category, Subcategory, Hashtag, Prod
 from . import db
 from . import login_manager, login_user, logout_user, login_required, current_user
 from sqlalchemy import or_, and_
+from sqlalchemy.orm import joinedload
 
 pagination_per_page = 4
 
@@ -37,6 +38,23 @@ def home():
 #   --> Category, Subcategory, Hashtag DONE
 # TODO: DELETE method - need to enable cascading for delete in models.py
 
+def get_product(id):
+    product = Product.query.options(
+        joinedload(Product.subcategory).joinedload(Subcategory.category),
+        joinedload(Product.product_images),
+        joinedload(Product.hashtags)
+    ).filter_by(prod_id=id).first()
+
+    if product is None:
+        return make_response({"message": 'Product not found'}, 404)
+
+    product_dict = product.to_dict()
+    product_dict['subcategory'] = product.subcategory.to_dict()
+    product_dict['category'] = product.subcategory.category.to_dict()
+    product_dict['product_images'] = [image.to_dict() for image in product.product_images]
+    product_dict['hashtags'] = [hashtag.to_dict()['tag_label'] for hashtag in product.hashtags]
+
+    return product_dict
 
 # Route to get all products with pagination
 @app.route('/products', methods=['GET'])
@@ -49,7 +67,8 @@ def get_products():
         # IF there are fewer products, the has_next attribute will be False
         page = Product.query.paginate(
             page=page_num, per_page=pagination_per_page)
-        products_json = [product.to_dict() for product in page.items]
+        products_json = [get_product(product.prod_id) for product in page.items]
+        # products_json = [product.to_dict() for product in page.items]
 
         return make_response(
             jsonify({
@@ -135,43 +154,43 @@ def create_product():
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
 
-
 # Route to get/update/delete a product by id
 @app.route('/product/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def product(id):
     if request.method == 'GET':
         try:
-            required_prod = Product.query.filter_by(
-                    prod_id=id).first().to_dict()
+            # required_prod = Product.query.filter_by(
+            #         prod_id=id).first().to_dict()
 
-            # If the product is not found, return a 404 error
-            if required_prod == None:
-                return make_response({"message": 'Product not found'}, 404)
+            # # If the product is not found, return a 404 error
+            # if required_prod == None:
+            #     return make_response({"message": 'Product not found'}, 404)
 
-            # If product is found, get the other details
-            subcategory_id = required_prod.get('subcategory_id')
-            subcategory = Subcategory.query.filter_by(
-                subcategory_id=subcategory_id).first().to_dict()
-
-            
-            category_id = subcategory.get('category_id')
-            category = Category.query.filter_by(category_id=category_id).first().to_dict()
+            # # If product is found, get the other details
+            # subcategory_id = required_prod.get('subcategory_id')
+            # subcategory = Subcategory.query.filter_by(
+            #     subcategory_id=subcategory_id).first().to_dict()
 
             
-            hashtags = [hashtag.to_dict()['tag_label']
-                        for hashtag in Hashtag.query.filter_by(product_id=id).all()]
+            # category_id = subcategory.get('category_id')
+            # category = Category.query.filter_by(category_id=category_id).first().to_dict()
 
             
-            # hashtags = Hashtag.query.filter_by(product_id=id).all().to_dict()
-            product_image = Product_Image.query.filter_by(
-                prod_id=id).first().to_dict()
+            # hashtags = [hashtag.to_dict()['tag_label']
+            #             for hashtag in Hashtag.query.filter_by(product_id=id).all()]
+
+            
+            # # hashtags = Hashtag.query.filter_by(product_id=id).all().to_dict()
+            # product_image = Product_Image.query.filter_by(
+            #     prod_id=id).first().to_dict()
 
 
-            hashtags = dict(tag_label=hashtags)
+            # hashtags = dict(tag_label=hashtags)
 
-            required_data = {**required_prod, **category,
-                             **subcategory, **hashtags, **product_image}
+            # required_data = {**required_prod, **category,
+            #                  **subcategory, **hashtags, **product_image}
             # print(required_data)
+            required_data = get_product(id)
             return make_response(jsonify(required_data), 200)
         except Exception as e:
             return make_response(jsonify({'error': str(e)}), 500)
