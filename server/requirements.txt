@@ -8,3 +8,5 @@ pyyaml
 pymysql
 sqlalchemy_utils
 flasgger
+pytest
+flask_testing
