@@ -456,7 +456,6 @@ def review_trans(t_id):
 
 # <---------------------------------------------Chat Routes----------------------------------------------------->
 
-
 @app.route('/user/senders/<u_id>', methods=['GET'])
 def all_senders(u_id):
 
@@ -523,3 +522,28 @@ def messages_send(p_id, s_id, r_id):
 
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 500)
+
+# <---------------------------------------------Category Routes----------------------------------------------------->
+    
+@app.route('/categories', methods = ['GET'])
+def get_categories():
+
+    try:
+        entries = Category.query.all()
+        return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
+    
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/subcategories/<c_id>', methods = ['GET'])
+def get_subcategories(c_id):
+
+    try:
+        entries = Subcategory.query.filter_by(category_id = c_id)
+        return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
+    
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+
+
+    
