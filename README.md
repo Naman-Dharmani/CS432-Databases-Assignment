@@ -48,11 +48,3 @@ A full stack web application (Svelte + Flask) designed as a buy-and-sell portal,
 
 
 Now, visit the url shown in the terminal.
-
-
-## Screenshots
-
-![image info](./pictures/image.png)
-![image info](./pictures/image.png)
-![image info](./pictures/image.png)
-![image info](./pictures/image.png)
