@@ -358,11 +358,6 @@ def app_feedback():
 
 # <---------------------------------------------Transaction Routes----------------------------------------------------->
 
-@app.route('/all_users', methods=['GET'])
-def get_all_users():
-    users = User.query.all()
-    return make_response(jsonify([user.to_dict() for user in users]), 200)
-
 
 @app.route('/user/<u_id>/transactions', methods=['GET'])
 def all_transactions(u_id):

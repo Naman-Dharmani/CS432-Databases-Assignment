@@ -80,8 +80,20 @@ DELETE {{baseURL}}/product/11
 ### Fetch User Details
 GET {{baseURL}}/user/1
 
-### Create User Details
-GET {{baseURL}}/user/11
+### Update User Details
+PUT {{baseURL}}/user/1
+Content-Type: application/json
+
+{
+  "name": "John",
+  "email": "j@d.oe"
+}
+
+### invalid user id as seed.py only does 10 users
+GET {{baseURL}}/user/11 
+
+### Delete User
+DELETE {{baseURL}}/user/1
 
 
 ##############################
@@ -146,3 +158,10 @@ Content-Type: application/json
 
 ###
 GET {{baseURL}}/user/senders/1
+
+
+###
+GET {{baseURL}}/user/senders/1/1
+
+###
+GET {{baseURL}}/user/senders/product/1/1

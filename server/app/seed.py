@@ -1,7 +1,7 @@
 import random
 import string
 from . import db
-from .models import Category, User, Product, Hashtag, Subcategory, Product_Image
+from .models import Category, User, Product, Hashtag, Subcategory, Product_Image, Listing
 
 
 def random_string(length=10):
@@ -116,6 +116,16 @@ def seed_db():
     # Commit the changes
     db.session.commit()
 
+    # Create a Listings
+    for i in range(1, 11):
+        user = User.query.get(i)
+        product = Product.query.get(i)
+        listings = Listing(
+            user_id=user.user_id,
+            prod_id=product.prod_id
+        )
+        db.session.add(listings)
+        db.session.commit()
 
 if __name__ == '__main__':
     seed_db()
