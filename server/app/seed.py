@@ -2,7 +2,6 @@ import random
 import string
 from . import db
 from .models import Category, User, Product, Hashtag, Subcategory, Product_Image
-from app import app
 
 
 def random_string(length=10):
@@ -19,11 +18,10 @@ def random_number(length=10):
 
 def seed_db():
     # Create 10 Users
-    # TODO: password needs to be hashed
-    for _ in range(10):
+    for i in range(10):
         user = User(
             name=random_string(),
-            email=f'{random_string()}@example.com',
+            email=f'user_{i}@example.com',
             password='password',
             phone_no=random_number(10),
             gender=random.choice(['Male', 'Female', 'Other']),

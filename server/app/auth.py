@@ -1,51 +1,53 @@
-from flask import redirect, render_template, request, url_for, flash
-# from flask_login import login_user, logout_user, login_required, current_user
-from . import login_manager
+from flask import request, make_response, jsonify
+from flask_jwt_extended import create_access_token, unset_jwt_cookies
+
 from .models import User
 from . import app
-from . import login_user, logout_user, login_required, current_user
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(user_id)
 
 
-@app.route('/signup', methods=['GET', 'POST'])
+@app.route('/signup', methods=['POST'])
 def signup():
-    if request.method == 'POST':
-        data = request.form.to_dict()
+    try:
+        data = request.json
         user = User(name=data['name'],
-                email=data['email'],
-                password=data['password'],
-                phone_no=data['phone_no'],
-                gender=data['gender'],
-                residence_location=data['residence_location'],
-                residence_number=data['residence_number'],
-                anonymity_level=data['anonymity_level'],
-                theme_preference=data['theme_preference'],
-                language_preference=data['language_preference'],
-                notification_preference=data['notification_preference']
-                )
+                    email=data['email'],
+                    password=data['password'],
+                    phone_no=data['phone_no'],
+                    gender=data['gender'],
+                    residence_location=data['residence_location'],
+                    residence_number=data['residence_number'],
+                    anonymity_level=data['anonymity_level'],
+                    theme_preference=data['theme_preference'],
+                    language_preference=data['language_preference'],
+                    notification_preference=data['notification_preference']
+                    )
         user.set_password(data['password'])
         user.save()
-        return redirect(url_for('login'))
-    return render_template('signup.html')
+        return make_response(jsonify({"message": "User created successfully"}), 200)
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        data = request.form.to_dict()
+    try:
+        data = request.json
         user = User.query.filter_by(email=data['email']).first()
-        if user and user.check_password(data['password']):
-            login_user(user)
-            return redirect(url_for('home'))
-        else:
-            return "Invalid credentials", 401
-    return render_template('login.html')
+        if not user:
+            return make_response(jsonify({"message": "User not found"}), 404)
 
-@app.route('/logout')
-@login_required
+        if user and user.check_password(data['password']):
+            access_token = create_access_token(identity=data['email'])
+            return make_response(jsonify({"access_token": access_token}), 200)
+        else:
+            return make_response(jsonify({"message": "Invalid credentials"}), 401)
+
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+
+
+@app.route('/logout', methods=['POST'])
 def logout():
-    logout_user()
-    return redirect(url_for('home'))
+    response = jsonify({"msg": "logout successful"})
+    unset_jwt_cookies(response)
+    return response

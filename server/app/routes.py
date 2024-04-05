@@ -1,17 +1,14 @@
-from flask import render_template, jsonify, request, redirect, url_for, make_response
+from flask import request, make_response, jsonify
 from flasgger import swag_from
 from datetime import datetime, timedelta, timezone
 
 from . import app
-from .models import User, Product, Listing, Category, Subcategory, Hashtag, Product_Image, App_Feedback, Chat, ChatSystem, Review, Transaction, Listing
 from . import db
-from . import login_manager, login_user, logout_user, login_required, current_user
+from .models import User, Product, Listing, Category, Subcategory, Hashtag, Product_Image, App_Feedback, Chat, ChatSystem, Review, Transaction, Listing
 from sqlalchemy import or_, and_
 from sqlalchemy.orm import joinedload
 
 pagination_per_page = 5
-
-# TODO: Home page ideas?
 
 
 @app.route('/')
@@ -59,9 +56,8 @@ def get_product(id):
 
     return product_dict
 
+
 # Route to get all products with pagination
-
-
 @app.route('/products', methods=['GET'])
 def get_products():
     # Retriving the page number from the query string
@@ -525,9 +521,9 @@ def messages_send(p_id, s_id, r_id):
 
 # <---------------------------------------------Category Routes----------------------------------------------------->
 
+
 @app.route('/categories', methods=['GET'])
 def get_categories():
-
     try:
         entries = Category.query.all()
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
@@ -536,9 +532,8 @@ def get_categories():
         return make_response(jsonify({'error': str(e)}), 500)
 
 
-@app.route('/subcategory/<c_id>', methods=['GET'])
+@app.route('/subcategory/<int:c_id>', methods=['GET'])
 def get_subcategories(c_id):
-
     try:
         entries = Subcategory.query.filter_by(category_id=c_id)
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
@@ -549,7 +544,6 @@ def get_subcategories(c_id):
 
 @app.route('/subcategories', methods=['GET'])
 def get_all_subcats():
-
     try:
         entries = Subcategory.query.all()
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)

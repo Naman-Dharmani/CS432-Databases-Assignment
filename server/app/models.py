@@ -1,11 +1,9 @@
-from sqlalchemy import Column, Integer, String, Enum, DECIMAL, TIMESTAMP, Boolean, ForeignKey, Text, DateTime, CheckConstraint, TIME
+from sqlalchemy import Column, Integer, String, Enum, DECIMAL, TIMESTAMP, Boolean, ForeignKey, Text, CheckConstraint, TIME
 from sqlalchemy.orm import relationship
-from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db
-from sqlalchemy import func
 
 
 class User(UserMixin, db.Model):

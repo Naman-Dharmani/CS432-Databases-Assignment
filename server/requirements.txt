@@ -1,8 +1,8 @@
 flask
-flask_sqlalchemy
 sqlalchemy
+flask_sqlalchemy
 flask_cors
-flask_login
+flask_jwt_extended
 mysqlclient
 pyyaml
 pymysql

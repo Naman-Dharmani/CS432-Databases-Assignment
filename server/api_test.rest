@@ -7,14 +7,17 @@ GET {{baseURL}}/
 # @name auth
 POST {{baseURL}}/login
 Content-Type: application/json
-Accept: application/json
+
 {
-  "email": {{$processEnv USER_EMAIL}},
-  "password": {{$processEnv USER_PASSWORD}},
+  "email": "{{$dotenv USER_EMAIL}}",
+  "password": "{{$dotenv USER_PASSWORD}}"
 }
 
-### Variable Response
-@accessToken = {{auth.response.body}}
+###
+@accessToken = {{auth.response.body.access_token}}
+
+###
+POST {{baseURL}}/logout
 
 ### Category Fetch Route
 GET {{baseURL}}/categories
@@ -75,7 +78,10 @@ DELETE {{baseURL}}/product/11
 #######################
 
 ### Fetch User Details
-GET {{baseURL}}/user/10
+GET {{baseURL}}/user/11
+
+### Create User Details
+GET {{baseURL}}/user/11
 
 
 ##############################
