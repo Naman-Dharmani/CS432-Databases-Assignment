@@ -99,9 +99,18 @@ def create_product():
         if not all(key in data for key in keys):
             return make_response(jsonify({'error': 'Data is missing some keys'}), 400)
 
+
+        import re
+
+        description = data['description']
+
+        hashtags = re.findall(r'\#\w+', description)
+        description_text = re.sub(r'\#\w+', '', description).strip()
+
+
         # Adding the form data to the db
         product = Product(prod_title=data['prod_title'],
-                          description=data['description'],
+                          description=description_text,
                           listed_price=data['listed_price'],
                           quantity=data['quantity'],
                           status=data['status'],
@@ -113,15 +122,24 @@ def create_product():
 
         product_id = product.prod_id
 
-        if 'hashtags' in data:
-            # Multiple hashtags can be added
-            for tag in data['hashtags'].split(','):
+        if len(hashtags) > 0:
+            for tag in hashtags:
                 tag = tag.strip()
                 hashtag = Hashtag(tag_label=tag,
                                   product_id=product_id
                                   )
                 db.session.add(hashtag)
             db.session.commit()
+
+        #if 'hashtags' in data:
+        #    # Multiple hashtags can be added
+        #    for tag in data['hashtags'].split(','):
+        #        tag = tag.strip()
+        #        hashtag = Hashtag(tag_label=tag,
+        #                          product_id=product_id
+        #                          )
+        #        db.session.add(hashtag)
+        #    db.session.commit()
 
         # TODO: uncomment this once login is required
         # user_id = current_user.get_id()

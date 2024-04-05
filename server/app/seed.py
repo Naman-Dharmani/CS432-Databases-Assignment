@@ -18,8 +18,8 @@ def random_number(length=10):
 
 def seed_db():
     # Create 10 Users
-    name=['Parth Deshpande', 'Tirth Patel', 'Naman Dharmani', 'Adit Rambhia', 'Adit Rambhia', 'Sahil Das', 'Rachit Verma', 'Yash Bothra', 'Manas Kawal', 'Siddharth Shah']
-    email=['deshpandeparth', 'pateltirth', 'dharmaninaman', 'rambhiaadit', 'rambhiaadit', 'dassahil', 'vermarachit', 'bothrayash', 'kawalmanas', 'shahsiddharth']
+    name=['Parth Deshpande', 'Tirth Patel', 'Naman Dharmani', 'Adit Rambhia', 'Sahil Das', 'Rachit Verma', 'Yash Bothra', 'Manas Kawal', 'Siddharth Shah', 'Srujan Kumar Shetty']
+    email=['deshpandeparth', 'pateltirth', 'dharmaninaman', 'rambhiaadit', 'dassahil', 'vermarachit', 'bothrayash', 'kawalmanas', 'shahsiddharth', 'shettysrujan']
     for i in range(len(name)):
 
         user = User(
@@ -71,9 +71,20 @@ def seed_db():
 
     db.session.commit()
 
+
+    url = ['https://www.aptronixindia.com/pub/media/catalog/product/m/b/mbp14-spacegray-select-202110-removebg-preview_2__1.png',
+           'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3GgYI1boRNJYqmw6sEvaZURa7ylX1UobMhA&s',
+           'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/ipad-air-finish-select-gallery-202211-purple-wificell_AV1_FMT_WHH?wid=1280&hei=720&fmt=p-jpg&qlt=95&.v=1670633077291',
+           'https://www.boat-lifestyle.com/cdn/shop/products/rockerz-518-blue.png?v=1613731627',
+           'https://5.imimg.com/data5/SELLER/Default/2022/9/OK/RL/XN/42175339/nikon-d7500-dslr-camera-500x500.jpg',
+           'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhV8r1EAhL0nemzWh4bOIK-uDujSiYbEp2GfPZcxTVYA&s',
+           'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFTmmfpJKrm2d5BeMu6qGsvXa_05BE5ZCDaD6TxEwYkQ&s',
+           'https://5.imimg.com/data5/SELLER/Default/2023/8/334128858/YQ/JG/IN/5847953/mixer-grinder-for-home-750-watt.jpg',
+           'https://5.imimg.com/data5/SELLER/Default/2023/8/334128858/YQ/JG/IN/5847953/mixer-grinder-for-home-750-watt.jpg',
+           'https://images-cdn.ubuy.co.in/633b131b9bfd300af1121135-smartdevil-space-heater-70.jpg']
     for i in range(10):
         product_image = Product_Image(
-            image_url='/placeholder.svg',
+            image_url=url[i],
             prod_id=i+1,
             image_caption='This is a placeholder image'
         )
@@ -86,7 +97,7 @@ def seed_db():
             prod_title=productname[i],
             description= f'This is a {productname[i]}',
             prod_condition=random.choice(['New', 'Used']),
-            listed_price=random.uniform(0, 1000),
+            listed_price=random.randint(0, 1000),
             quantity=random.randint(1, 4),
             subcategory_id= i+1
         )

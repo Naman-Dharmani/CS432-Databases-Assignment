@@ -20,26 +20,34 @@ A full stack web application (Svelte + Flask) designed as a buy-and-sell portal,
         pip install -r server/requirements.txt
     ```
 
-4. Insatll the client dependencies:
+4. Install pnpm:
+    ```
+        curl -fsSL https://get.pnpm.io/install.sh | sh -
+    ```
+
+5. Install nodejs v18:
+    
+
+6. Install the client dependencies:
     ```sh
         cd client
-        npm install
+        pnpm install
     ```
 
-5. Start the server:
+7. Go to the project dir and start the server:
     ```sh
-        cd ../server
-        python run.py
+        cd ..
+        python server/run.py
     ```
 
-6. In a new terminal, start the client:
+8. In a new terminal, start the client:
     ```sh 
         cd client
         npm run dev
     ```
 
 
-Now, visit the url provided by the flask application
+Now, visit the url shown in the terminal.
 
 
 ## Screenshots
