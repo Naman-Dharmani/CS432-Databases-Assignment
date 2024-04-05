@@ -36,7 +36,7 @@ GET {{baseURL}}/products
 GET {{baseURL}}/products?page=3
 
 ### View a Single Product
-GET {{baseURL}}/product/2
+GET {{baseURL}}/product/12
 
 ### Create a New Product
 POST {{baseURL}}/product
@@ -44,25 +44,31 @@ Content-Type: application/json
 # Authorization: Bearer {{accessToken}}
 
 {
-  "prod_title": ,
-  "description": ,
-  "prod_condition": ,
-  "listed_price": ,
-  "quantity": ,
-  "category_name": "",
-  "subcategory_name": "",
+  "prod_title": "bc",
+  "description": "cde",
+  "prod_condition": "Used",
+  "listed_price": 69,
+  "quantity": 39,
+  "subcategory_id": "1",
+  "status": "Available",
+  "image_url": "/placeholder.svg",
+  "hashtags": "#34,#45,#69"
 }
 
 ### Update a Product
 PUT {{baseURL}}/product/2
 Content-Type: application/json
 
+# {
+#   "tag_label": "#apple, #appleProduct"
+# }
+
 {
-  "tag_label": "#apple, #appleProduct"
+  "image_url": null
 }
 
 ### Delete a Product
-DELETE {{baseURL}}/product/1
+DELETE {{baseURL}}/product/11
 
 #######################
 ##### User Routes #####

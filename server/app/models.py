@@ -213,7 +213,7 @@ class Product_Image(db.Model):
     image_id = Column(Integer, primary_key=True, autoincrement=True)
     image_url = Column(String(3072), nullable=False)
     prod_id = Column(Integer, ForeignKey('Product.prod_id'))
-    image_caption = Column(String(100))
+    image_caption = Column(String(100), default="This is a product image")
 
     def __repr__(self):
         return f"<Product_Image(image_id={self.image_id}, image_url='{self.image_url}', prod_id={self.prod_id}, image_caption='{self.image_caption}')>"

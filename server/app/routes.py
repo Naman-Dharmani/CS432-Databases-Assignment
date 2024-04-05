@@ -9,7 +9,7 @@ from . import login_manager, login_user, logout_user, login_required, current_us
 from sqlalchemy import or_, and_
 from sqlalchemy.orm import joinedload
 
-pagination_per_page = 4
+pagination_per_page = 5
 
 # TODO: Home page ideas?
 
@@ -70,7 +70,7 @@ def get_products():
         # per_page is the max number of products to be shown
         # If there are more products, the has_next attribute will be True
         # IF there are fewer products, the has_next attribute will be False
-        page = Product.query.paginate(
+        page = Product.query.order_by(Product.date_listed.desc()).paginate(
             page=page_num, per_page=pagination_per_page)
         products_json = [get_product(product.prod_id)
                          for product in page.items]
@@ -80,6 +80,7 @@ def get_products():
             jsonify({
                     'products': products_json,
                     'has_next': page.has_next,  # To Indicate if there are more pages
+                    'has_prev': page.has_prev,  # To Indicate if there are previous pages
                     'total': page.total,
                     'page_num': page.page,
                     'per_page': page.per_page
@@ -97,49 +98,34 @@ def create_product():
         data = request.json
 
         # Sanity check for the data
-        keys = ['prod_title', 'description', 'prod_condition',
-                'listed_price', 'quantity', 'category_name', 'subcategory_name']
+        keys = ['prod_title', 'description', 'listed_price',
+                'quantity', 'subcategory_id', 'status']
         if not all(key in data for key in keys):
             return make_response(jsonify({'error': 'Data is missing some keys'}), 400)
 
         # Adding the form data to the db
         product = Product(prod_title=data['prod_title'],
                           description=data['description'],
-                          prod_condition=data['prod_condition'],
                           listed_price=data['listed_price'],
                           quantity=data['quantity'],
+                          status=data['status'],
                           # the drop down option should be converted to a number before sending
                           subcategory_id=data['subcategory_id']
                           )
         db.session.add(product)
         db.session.commit()
 
-        # Need the category_id inorder to add the subcategory
-        category_id = category.category_id
-        sub_category = Subcategory(subcategory_name=data['subcategory_name'],
-                                   category_id=category_id
-                                   )
-        db.session.add(sub_category)
-        db.session.commit()
-
-        # Need the prod_id inorder to add the category
-        # SQLAlchmey automatically updates the product instance after commit
         product_id = product.prod_id
-        category = Category(category_name=data['category_name'],
-                            prod_id=product_id
-                            )
-        db.session.add(category)
-        db.session.commit()
 
-        if 'hashtag' in data:
+        if 'hashtags' in data:
             # Multiple hashtags can be added
-            for tag in data['hashtag'].split(','):
+            for tag in data['hashtags'].split(','):
                 tag = tag.strip()
                 hashtag = Hashtag(tag_label=tag,
                                   product_id=product_id
                                   )
                 db.session.add(hashtag)
-                db.session.commit()
+            db.session.commit()
 
         # TODO: uncomment this once login is required
         # user_id = current_user.get_id()
@@ -149,13 +135,19 @@ def create_product():
         # db.session.add(listing)
         # db.session.commit()
 
-        product_image = Product_Image(image_url=data['image_url'],
-                                      prod_id=product_id,
-                                      # Describes what the image is about
-                                      image_caption=data['image_caption']
-                                      )
-        db.session.add(product_image)
-        db.session.commit()
+        if 'image_url' in data:
+            if 'image_caption' in data:
+                product_image = Product_Image(image_url=data['image_url'],
+                                              prod_id=product_id,
+                                              # Describes what the image is about
+                                              image_caption=data['image_caption']
+                                              )
+            else:
+                product_image = Product_Image(image_url=data['image_url'],
+                                              prod_id=product_id
+                                              )
+            db.session.add(product_image)
+            db.session.commit()
 
         return make_response(jsonify({"message": "Product added successfully"}), 201)
 
