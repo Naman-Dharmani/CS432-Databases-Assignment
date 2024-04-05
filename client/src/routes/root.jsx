@@ -1,38 +1,46 @@
-function Root() {
+import { useEffect, useState } from "react";
+import { json, Outlet } from "react-router-dom";
+
+import Navbar from "@/components/Navbar";
+import { CategoryDataContext } from "@/context/category";
+
+async function logout() {
+  // send the user id for logging out
+  if (Math.random() < 0.5) {
+    return json({ ok: true }, { status: 200 });
+  } else {
+    throw new Error("failed logging out");
+  }
+}
+
+export default function Root() {
+  const [categoryData, setCategoryData] = useState({});
+
+  useEffect(() => {
+    async function fetchData() {
+      const categories = await (
+        await fetch(`${import.meta.env.VITE_URL}/categories`)
+      ).json();
+
+      const subcategories = await (
+        await fetch(`${import.meta.env.VITE_URL}/subcategories`)
+      ).json();
+
+      setCategoryData({ categories, subcategories });
+    }
+    fetchData();
+  }, []);
+
   return (
-    <>
-      <div id="sidebar">
-        <h1>React Router Contacts</h1>
-        <div>
-          <form id="search-form" role="search">
-            <input
-              id="q"
-              aria-label="Search contacts"
-              placeholder="Search"
-              type="search"
-              name="q"
-            />
-            <div id="search-spinner" aria-hidden hidden={true} />
-            <div className="sr-only" aria-live="polite"></div>
-          </form>
-          <form method="post">
-            <button type="submit">New</button>
-          </form>
-        </div>
-        <nav>
-          <ul>
-            <li>
-              <a href={`/contacts/1`}>Your Name</a>
-            </li>
-            <li>
-              <a href={`/contacts/2`}>Your Friend</a>
-            </li>
-          </ul>
-        </nav>
+    <CategoryDataContext.Provider value={categoryData}>
+      <div className="flex min-h-screen w-full flex-col">
+        <Navbar isLoggedIn={true} />
+        <main className="w-full">
+          <Outlet />
+        </main>
       </div>
-      <div id="detail"></div>
-    </>
+    </CategoryDataContext.Provider>
   );
 }
 
-export default Root;
+Root.action = logout;
