@@ -58,6 +58,7 @@ def get_product(id):
 
 # Route to get all products with pagination
 @app.route('/products', methods=['GET'])
+@login_required
 def get_products():
     # Retriving the page number from the query string
     try:
@@ -85,7 +86,7 @@ def get_products():
 
 # Route to add a new product
 @app.route('/product', methods=['POST'])
-# @login_required
+@login_required
 def create_product():
     try:
         data = request.json
@@ -134,12 +135,12 @@ def create_product():
                 db.session.commit()
 
         # TODO: uncomment this once login is required
-        # user_id = current_user.get_id()
-        # listing = Listing(user_id=user_id,
-        #                   prod_id=product_id
-        #                   )
-        # db.session.add(listing)
-        # db.session.commit()
+        user_id = current_user.get_id()
+        listing = Listing(user_id=user_id,
+                          prod_id=product_id
+                          )
+        db.session.add(listing)
+        db.session.commit()
 
         product_image = Product_Image(image_url=data['image_url'],
                                       prod_id=product_id,
@@ -274,9 +275,25 @@ def product(id):
 # <---------------------------------------------User Routes----------------------------------------------------->
 # TODO
 
+# profile page, current user details
+@app.route('/user', methods=['GET'])
+@login_required
+def user():
+    try:
+        user = User.query.get(current_user.get_id())
+        if user is None:
+            return make_response(jsonify({'message': 'User not found'}), 404)
+        res = user.to_dict()
+        del res['password']
+        return make_response(jsonify(res), 200)
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 500)
+
 @app.route('/user/<int:u_id>', methods=['GET'])
 @swag_from('docs/get_user.yml')
+@login_required
 def get_user(u_id):
+    # is this route needed? as we have the current user route
     try:
         user = User.query.get(u_id)
         if user is None:
@@ -289,6 +306,7 @@ def get_user(u_id):
 
 
 @app.route('/user/<int:u_id>', methods=['PUT'])
+@login_required
 def update_user(u_id):
     try:
         user = User.query.get(u_id)
@@ -306,6 +324,7 @@ def update_user(u_id):
 
 
 @app.route('/user/<int:u_id>', methods=['DELETE'])
+@login_required
 def delete_user(u_id):
     try:
         user = User.query.get(u_id)
@@ -319,6 +338,7 @@ def delete_user(u_id):
 
 
 @app.route('/user/<int:u_id>/listings', methods=['GET'])
+@login_required
 def get_user_listings(u_id):
     try:
         listings = Listing.query.filter_by(user_id=u_id).all()
@@ -329,10 +349,11 @@ def get_user_listings(u_id):
 
 # <---------------------------------------------App Feedback----------------------------------------------------->
 @app.route('/app/feedback', methods=['POST'])
+@login_required
 def app_feedback():
     try:
-        # user_id = current_user.get_id()
-        user_id = 2
+        user_id = current_user.get_id()
+        # user_id = 2
         data = request.get_json()
         feedback = App_Feedback(user_id=user_id,
                                 feedback_rating=data['rating'],
@@ -354,6 +375,7 @@ def get_all_users():
 
 
 @app.route('/user/<u_id>/transactions', methods=['GET'])
+@login_required
 def all_transactions(u_id):
 
     try:
@@ -366,6 +388,7 @@ def all_transactions(u_id):
 
 
 @app.route('/user/transactions/<t_id>', methods=['GET', 'PUT'])
+@login_required
 def get_transaction_details(t_id):
 
     # Add check for user accessibility
@@ -392,6 +415,7 @@ def get_transaction_details(t_id):
 
 
 @app.route('/user/new_transaction', methods=['POST'])
+@login_required
 def new_transaction():
 
     try:
