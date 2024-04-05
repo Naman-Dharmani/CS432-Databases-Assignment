@@ -18,9 +18,9 @@ def random_number(length=10):
 
 def seed_db():
     # Create 10 Users
-    name=['Parth Deshpande', 'Tirth Patel', 'Naman Dharmani', 'Adit Rambhia', 'Adit Rambhia']
-    email=['deshpandeparth', 'pateltirth', 'dharmaninaman', 'rambhiaadit', 'rambhiaadit']
-    for i in range(10):
+    name=['Parth Deshpande', 'Tirth Patel', 'Naman Dharmani', 'Adit Rambhia', 'Adit Rambhia', 'Sahil Das', 'Rachit Verma', 'Yash Bothra', 'Manas Kawal', 'Siddharth Shah']
+    email=['deshpandeparth', 'pateltirth', 'dharmaninaman', 'rambhiaadit', 'rambhiaadit', 'dassahil', 'vermarachit', 'bothrayash', 'kawalmanas', 'shahsiddharth']
+    for i in range(len(name)):
 
         user = User(
             name= name[i],
@@ -80,14 +80,15 @@ def seed_db():
         db.session.add(product_image)
 
     # Create 10 Products
-    for _ in range(10):
+    productname = ['Macbook M1', 'Iphone 15', 'Ipad Air', 'Boat Headphones', 'Nikon DSLR', 'Sony SmartTV', 'Apple Watch Series 9', 'Mixer-Grinder', 'PS5', 'Heater' ]
+    for i in range(len(productname)):
         product = Product(
-            prod_title=random_string(10),
-            description=random_string(100),
+            prod_title=productname[i],
+            description= f'This is a {productname[i]}',
             prod_condition=random.choice(['New', 'Used']),
             listed_price=random.uniform(0, 1000),
-            quantity=random.randint(1, 100),
-            subcategory_id=1
+            quantity=random.randint(1, 4),
+            subcategory_id= i+1
         )
         db.session.add(product)
 
