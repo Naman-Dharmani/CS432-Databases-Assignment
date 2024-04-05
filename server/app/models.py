@@ -94,7 +94,7 @@ class Product(db.Model):
         'Interest', backref='product_interests', lazy='dynamic', cascade="all,delete")
     listings = relationship(
         'Listing', backref='product_listings', lazy='dynamic', cascade="all,delete")
-    subcategory = relationship('Subcategory')
+    subcategory = relationship('Subcategory', overlaps="subcategory")
     # categories = relationship('Category', backref='product_categories', lazy='dynamic', cascade="all,delete")
     # seller = relationship('Seller', backref='product_seller', lazy='dynamic', cascade="all,delete")
     # transactions = relationship('Transaction', backref='product', lazy='dynamic', cascade="all,delete")
@@ -184,7 +184,7 @@ class Subcategory(db.Model):
         'Category.category_id'), nullable=False)
     category = relationship("Category", back_populates="subcategories",
                             overlaps="subcategories,category_subcategory")
-    products = relationship('Product')
+    # products = relationship('Product')
 
     def __repr__(self):
         return f"<Subcategory(subcategory_id={self.subcategory_id}, subcategory_name='{self.subcategory_name}', category_id={self.category_id})>"
