@@ -18,13 +18,15 @@ def random_number(length=10):
 
 def seed_db():
     # Create 10 Users
-    name=['Parth Deshpande', 'Tirth Patel', 'Naman Dharmani', 'Adit Rambhia', 'Sahil Das', 'Rachit Verma', 'Yash Bothra', 'Manas Kawal', 'Siddharth Shah', 'Srujan Kumar Shetty']
-    email=['deshpandeparth', 'pateltirth', 'dharmaninaman', 'rambhiaadit', 'dassahil', 'vermarachit', 'bothrayash', 'kawalmanas', 'shahsiddharth', 'shettysrujan']
+    name = ['Parth Deshpande', 'Tirth Patel', 'Naman Dharmani', 'Adit Rambhia', 'Sahil Das',
+            'Rachit Verma', 'Yash Bothra', 'Manas Kawal', 'Siddharth Shah', 'Srujan Kumar Shetty']
+    email = ['deshpandeparth', 'pateltirth', 'dharmaninaman', 'rambhiaadit', 'dassahil',
+             'vermarachit', 'bothrayash', 'kawalmanas', 'shahsiddharth', 'shettysrujan']
     for i in range(len(name)):
 
         user = User(
-            name= name[i],
-            email= email[i] + '@iitgn.ac.in',
+            name=name[i],
+            email=email[i] + '@iitgn.ac.in',
             password='password',
             phone_no=random_number(10),
             gender='Male',
@@ -71,7 +73,6 @@ def seed_db():
 
     db.session.commit()
 
-
     url = ['https://www.aptronixindia.com/pub/media/catalog/product/m/b/mbp14-spacegray-select-202110-removebg-preview_2__1.png',
            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3GgYI1boRNJYqmw6sEvaZURa7ylX1UobMhA&s',
            'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/ipad-air-finish-select-gallery-202211-purple-wificell_AV1_FMT_WHH?wid=1280&hei=720&fmt=p-jpg&qlt=95&.v=1670633077291',
@@ -91,15 +92,16 @@ def seed_db():
         db.session.add(product_image)
 
     # Create 10 Products
-    productname = ['Macbook M1', 'Iphone 15', 'Ipad Air', 'Boat Headphones', 'Nikon DSLR', 'Sony SmartTV', 'Apple Watch Series 9', 'Mixer-Grinder', 'PS5', 'Heater' ]
+    productname = ['Macbook M1', 'Iphone 15', 'Ipad Air', 'Boat Headphones', 'Nikon DSLR',
+                   'Sony SmartTV', 'Apple Watch Series 9', 'Mixer-Grinder', 'PS5', 'Heater']
     for i in range(len(productname)):
         product = Product(
             prod_title=productname[i],
-            description= f'This is a {productname[i]}',
+            description=f'This is a {productname[i]}',
             prod_condition=random.choice(['New', 'Used']),
             listed_price=random.randint(0, 1000),
             quantity=random.randint(1, 4),
-            subcategory_id= i+1
+            subcategory_id=i+1
         )
         db.session.add(product)
 

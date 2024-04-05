@@ -408,11 +408,12 @@ def new_transaction():
     try:
         if request.method == 'POST':
 
-            transaction_details = request.form.to_dict()
+            transaction_details = request.get_json()
             buyer_id = transaction_details['buyer_id']
             seller_id = transaction_details['seller_id']
             prod_id = transaction_details['prod_id']
-            transaction_date = transaction_details['transaction_date']
+            # transaction_date = transaction_details['transaction_date']
+            transaction_date = datetime.utcnow()
             selling_price = transaction_details['selling_price']
             quantity = transaction_details['quantity']
 

@@ -78,7 +78,7 @@ DELETE {{baseURL}}/product/11
 #######################
 
 ### Fetch User Details
-GET {{baseURL}}/user/11
+GET {{baseURL}}/user/1
 
 ### Create User Details
 GET {{baseURL}}/user/11
@@ -87,3 +87,62 @@ GET {{baseURL}}/user/11
 ##############################
 ##### Transaction Routes #####
 ##############################
+
+POST {{baseURL}}/user/new_transaction
+Content-Type: application/json
+# Authorization: Bearer {{accessToken}}
+
+{
+  "buyer_id": "1",
+  "seller_id": "2",
+  "prod_id": "1",
+  "selling_price": "69",
+  "quantity": "2"
+}
+
+###
+GET {{baseURL}}/user/1/transactions
+
+###
+GET {{baseURL}}/user/2/transactions
+
+###
+PUT {{baseURL}}/user/transactions/1
+Content-Type: application/json
+
+{
+  "selling_price": "420"
+}
+
+### Review
+POST {{baseURL}}/user/review/1
+Content-Type: application/json
+
+{
+  "text": "wow! another wow!",
+  "rating": "5"
+}
+
+###
+PUT {{baseURL}}/user/review/1
+Content-Type: application/json
+
+{
+  "rating": "4"
+}
+
+
+#######################
+##### Chat System #####
+#######################
+
+###
+POST {{baseURL}}/user/send/1/2/1
+Content-Type: application/json
+
+{
+  "text": "ekdum krishna laage chhe"
+}
+
+###
+GET {{baseURL}}/user/senders/1

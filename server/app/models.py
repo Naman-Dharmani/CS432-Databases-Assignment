@@ -321,6 +321,7 @@ class ChatSystem(db.Model):
     message_id = Column(Integer, ForeignKey(
         'Chat.message_id'), primary_key=True)
     sender_id = Column(Integer, ForeignKey('User.user_id'), primary_key=True)
+    reciever_id = Column(Integer, ForeignKey('User.user_id'), primary_key=True)
     prod_id = Column(Integer, ForeignKey('Product.prod_id'), primary_key=True)
 
     def to_dict(self):

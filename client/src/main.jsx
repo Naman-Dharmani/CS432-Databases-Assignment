@@ -15,6 +15,7 @@ import LoginForm from "@/routes/Login";
 import Transactions from "@/routes/Transactions";
 import AddProduct from "@/routes/AddProduct";
 import EditProduct from "@/routes/EditProduct";
+import ProductLayout from "@/routes/ProductLayout";
 import ProductInfo from "@/routes/ProductInfo";
 import ProductList from "@/routes/ProductList.jsx";
 import Settings from "@/routes/Settings.jsx";
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        loader: Home.loader,
         element: <Home />,
       },
       {
@@ -42,7 +44,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/dashboard",
-        element: <ProductList />,
+        element: <div>Dashboard</div>,
       },
       {
         path: "/product/new",
@@ -51,9 +53,10 @@ const router = createBrowserRouter([
       },
       {
         path: "/product/:prod_id",
-        action: ProductInfo.action,
-        element: <ProductInfo />,
+        action: ProductLayout.action,
+        element: <ProductLayout />,
         children: [
+          { index: true, loader: ProductInfo.loader, element: <ProductInfo /> },
           {
             path: "/product/:prod_id/edit",
             loader: EditProduct.loader,
