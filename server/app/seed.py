@@ -18,14 +18,17 @@ def random_number(length=10):
 
 def seed_db():
     # Create 10 Users
+    name=['Parth Deshpande', 'Tirth Patel', 'Naman Dharmani', 'Adit Rambhia', 'Adit Rambhia']
+    email=['deshpandeparth', 'pateltirth', 'dharmaninaman', 'rambhiaadit', 'rambhiaadit']
     for i in range(10):
+
         user = User(
-            name=random_string(),
-            email=f'user_{i}@example.com',
+            name= name[i],
+            email= email[i] + '@iitgn.ac.in',
             password='password',
             phone_no=random_number(10),
-            gender=random.choice(['Male', 'Female', 'Other']),
-            residence_location=random_string(5),
+            gender='Male',
+            residence_location='Emiet',
             residence_number=random_number(3)
         )
         user.set_password(user.password)
