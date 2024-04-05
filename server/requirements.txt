@@ -1,0 +1,12 @@
+flask
+sqlalchemy
+flask_sqlalchemy
+flask_cors
+flask_jwt_extended
+mysqlclient
+pyyaml
+pymysql
+sqlalchemy_utils
+flasgger
+pytest
+flask_testing

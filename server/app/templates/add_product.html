@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add product</title>
+</head>
+<body>
+    
+    <form action="/product/create/addToDb" method="post">
+        <label> Product Name: </label><br>
+        <input type="text" name="prod_title" placeholder="Nothin Phone 2" required><br>
+
+        <label> Upload Image: </label><br>
+        <input type="file" id="fileInput" name="image" accept="image/*" requiredb><br>
+
+        <label> Product Description: </label><br>
+        <input type="text" name="description" placeholder="Nothing by Nothing" required><br>
+
+        <label for="prod_condition"> Select Status: </label>
+        <select id="prod_condition" name="prod_condition">
+            <option value="new"> New </option>
+            <option value="old"> Old </option>
+        </select><br>        
+
+        <label for="listed_price"> Price </label><br>
+        <input type="number" name="listed_price" placeholder="2000" min="0" required><br>
+
+        <label> Quantity </label><br>
+        <input type="number" name="quantity" placeholder="2" min="1" required><br>
+
+        <label for="category"> Category: </label>
+        <select id="category" name="category">
+            <option value="electronics"> Electronics </option>
+            <option value="clothing"> Clothing </option>
+            <option value="others"> Others </option>
+        </select><br>
+
+        <label for="sub_category"> Sub-category: </label>
+        <select id="sub_category" name="sub_category">
+            <option value="laptop"> Laptop </option>
+            <option value="desktop"> Desktop </option>
+            <option value="other"> Other </option>
+        </select><br>  
+
+        <input type="submit" value="Submit">
+    </form> 
+
+</body>
+</html>

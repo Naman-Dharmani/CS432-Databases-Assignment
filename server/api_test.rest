@@ -1,0 +1,89 @@
+@baseURL = http://localhost:5000
+
+### Service Test Route
+GET {{baseURL}}/
+
+### Authentication Service
+# @name auth
+POST {{baseURL}}/login
+Content-Type: application/json
+
+{
+  "email": "{{$dotenv USER_EMAIL}}",
+  "password": "{{$dotenv USER_PASSWORD}}"
+}
+
+###
+@accessToken = {{auth.response.body.access_token}}
+
+###
+POST {{baseURL}}/logout
+
+### Category Fetch Route
+GET {{baseURL}}/categories
+
+### Single Subcategory Fetch
+GET {{baseURL}}/subcategory/4
+
+### Subcategories Fetch Route
+GET {{baseURL}}/subcategories
+
+##########################
+##### Product Routes #####
+##########################
+
+###
+GET {{baseURL}}/products
+
+###
+GET {{baseURL}}/products?page=3
+
+### View a Single Product
+GET {{baseURL}}/product/12
+
+### Create a New Product
+POST {{baseURL}}/product
+Content-Type: application/json
+# Authorization: Bearer {{accessToken}}
+
+{
+  "prod_title": "bc",
+  "description": "cde",
+  "prod_condition": "Used",
+  "listed_price": 69,
+  "quantity": 39,
+  "subcategory_id": "1",
+  "status": "Available",
+  "image_url": "/placeholder.svg",
+  "hashtags": "#34,#45,#69"
+}
+
+### Update a Product
+PUT {{baseURL}}/product/2
+Content-Type: application/json
+
+# {
+#   "tag_label": "#apple, #appleProduct"
+# }
+
+{
+  "image_url": null
+}
+
+### Delete a Product
+DELETE {{baseURL}}/product/11
+
+#######################
+##### User Routes #####
+#######################
+
+### Fetch User Details
+GET {{baseURL}}/user/11
+
+### Create User Details
+GET {{baseURL}}/user/11
+
+
+##############################
+##### Transaction Routes #####
+##############################
