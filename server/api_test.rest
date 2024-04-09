@@ -19,6 +19,24 @@ Content-Type: application/json
 ###
 POST {{baseURL}}/logout
 
+### signup
+POST {{baseURL}}/signup
+Content-Type: application/json
+
+{
+  "name": "Alice Smith",
+  "email": "alice.smith@example.com",
+  "password": "password123",
+  "phone_no": "2345678901",
+  "gender": "Female",
+  "residence_location": "Los Angeles",
+  "residence_number": "456 Elm St",
+  "anonymity_level": "Visible",
+  "theme_preference": "Light",
+  "language_preference": "English",
+  "notification_preference": "All"
+}
+
 ### Category Fetch Route
 GET {{baseURL}}/categories
 
@@ -36,7 +54,7 @@ GET {{baseURL}}/subcategories
 GET {{baseURL}}/products
 
 ###
-GET {{baseURL}}/products?page=3
+GET {{baseURL}}/products?page=2
 
 ### View a Single Product
 GET {{baseURL}}/product/12
@@ -93,7 +111,7 @@ Content-Type: application/json
 GET {{baseURL}}/user/11 
 
 ### Delete User
-DELETE {{baseURL}}/user/1
+DELETE {{baseURL}}/user/6
 
 
 ##############################

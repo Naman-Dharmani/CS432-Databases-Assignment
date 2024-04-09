@@ -44,7 +44,10 @@ class User(UserMixin, db.Model):
     # app_feedback = relationship('App_Feedback', backref='user', lazy='dynamic', cascade="all,delete")
     # reviews = relationship('Review', backref='user', lazy='dynamic', cascade="all,delete")
     # transactions = relationship('Transaction', backref='user', lazy='dynamic', cascade="all,delete")
-    # chat_system = relationship('ChatSystem', backref='user', lazy='dynamic', cascade="all,delete")
+    sent_messages = relationship('ChatSystem', foreign_keys='ChatSystem.sender_id', backref='sender', cascade="all,delete")
+    received_messages = relationship('ChatSystem', foreign_keys='ChatSystem.reciever_id', backref='receiver', cascade="all,delete")
+    seller_transactions = relationship('Transaction', foreign_keys='Transaction.seller_id', backref='seller', cascade="all,delete")
+    buyer_transactions = relationship('Transaction', foreign_keys='Transaction.buyer_id', backref='buyer', cascade="all,delete")
 
     def __repr__(self):
         return f"<User(user_id={self.user_id}, name='{self.name}', email='{self.email}')>"
