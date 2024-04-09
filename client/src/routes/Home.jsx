@@ -1,6 +1,7 @@
 import { Link, useLoaderData } from "react-router-dom";
 import { HeartIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 import { useCategoryData } from "@/context/category-provider";
 
@@ -14,6 +15,7 @@ async function loader({ request }) {
 export default function Home() {
   const data = useLoaderData();
   const categoryData = useCategoryData();
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   return (
     <div className="bg-background">
@@ -74,6 +76,7 @@ export default function Home() {
                   <button
                     key={category.category_id}
                     className="inline-flex h-9 w-full items-center justify-start whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                    onClick={() => setSelectedCategory(category.category_id)}
                   >
                     {category.category_name}
                   </button>
@@ -148,6 +151,7 @@ export default function Home() {
                         <div className="flex space-x-4 pb-4">
                           {data.products
                             .filter((product) => product.status === "Available")
+                            .filter((product) => selectedCategory === null || product.category.category_id === selectedCategory)
                             .map((product) => (
                               <div
                                 className="w-[250px] space-y-3"
