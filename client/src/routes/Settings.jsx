@@ -1,3 +1,5 @@
+import { Form, redirect, useLoaderData } from "react-router-dom";
+
 import {
   Select,
   SelectContent,
@@ -7,8 +9,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+
+async function loader({ request }) {
+  return fetch(`${import.meta.env.VITE_URL}/user/1`);
+}
+
+async function action({ request, params }) {
+  const formData = await request.formData();
+  const data = Object.fromEntries(formData);
+
+  console.log(data);
+
+  const response = await fetch(`${import.meta.env.VITE_URL}/user/1`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (response.ok) {
+    return redirect("/");
+  } else {
+    throw new Error("Error updating user details");
+  }
+}
 
 export default function Settings() {
+  const data = useLoaderData();
+
   return (
     <div className="hidden space-y-6 p-10 pb-16 md:block">
       <div className="space-y-0.5">
@@ -70,7 +102,7 @@ export default function Settings() {
               data-orientation="horizontal"
               role="none"
             />
-            <form className="space-y-8">
+            <Form method="post" className="space-y-8">
               <div className="space-y-2">
                 <label
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -78,13 +110,11 @@ export default function Settings() {
                 >
                   Name
                 </label>
-                <input
-                  aria-describedby=":r1bq:-form-item-description"
-                  aria-invalid="false"
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  id=":r1bq:-form-item"
-                  name="username"
+                <Input
+                  type="text"
+                  name="name"
                   placeholder="John Doe"
+                  defaultValue={data?.name}
                 />
                 <p
                   className="text-[0.8rem] text-muted-foreground"
@@ -100,12 +130,10 @@ export default function Settings() {
                 >
                   Email
                 </label>
-                <input
-                  aria-describedby=":r1bq:-form-item-description"
-                  aria-invalid="false"
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  id=":r1bq:-form-item"
+                <Input
+                  name="email"
                   placeholder="a@b.c"
+                  defaultValue={data?.email}
                 />
               </div>
               <div className="space-y-2">
@@ -115,12 +143,13 @@ export default function Settings() {
                 >
                   Phone No.
                 </label>
-                <input
-                  aria-describedby=":r1bq:-form-item-description"
-                  aria-invalid="false"
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  id=":r1bq:-form-item"
+                <Input
+                  type="number"
+                  name="phone_no"
                   placeholder="1234567890"
+                  defaultValue={data?.phone_no}
+                  min="0"
+                  max="9999999999"
                 />
                 {/* <p
                   className="text-[0.8rem] text-muted-foreground"
@@ -136,16 +165,16 @@ export default function Settings() {
                 >
                   Gender
                 </label>
-                <Select>
-                  <SelectTrigger className="w-full" value="Male">
+                <Select defaultValue={data?.gender} name="gender">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       {/* <SelectLabel>Male</SelectLabel> */}
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -157,22 +186,20 @@ export default function Settings() {
                 >
                   Residence
                 </label>
-                <textarea
-                  aria-describedby=":r1bt:-form-item-description"
-                  aria-invalid="false"
-                  className="flex min-h-[60px] w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  defaultValue="IIT Gandhinagar"
+                <Textarea
+                  name="residence_location"
                   placeholder="Residence Location"
+                  defaultValue={data?.residence_location}
                 />
-                <p
+                {/* <p
                   className="text-[0.8rem] text-muted-foreground"
                   id=":r1bt:-form-item-description"
                 >
                   You can <span>@mention</span> other users and organizations to
                   link to them.
-                </p>
+                </p> */}
               </div>
-              <div>
+              {/* <div>
                 <div className="space-y-2">
                   <label
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -223,17 +250,15 @@ export default function Settings() {
                 >
                   Add URL
                 </button>
-              </div>
-              <button
-                className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                type="submit"
-              >
-                Update profile
-              </button>
-            </form>
+              </div> */}
+              <Button type="submit">Update profile</Button>
+            </Form>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+Settings.loader = loader;
+Settings.action = action;
