@@ -1,6 +1,6 @@
-import { useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Form, redirect, useLoaderData, useNavigate } from "react-router-dom";
-import { CategoryDataContext } from "@/context/category";
+import { useCategoryData } from "@/context/category-provider";
 
 import {
   // ChevronLeft,
@@ -97,7 +97,7 @@ async function action({ request, params }) {
 }
 
 export default function EditProduct() {
-  const categoryData = useContext(CategoryDataContext);
+  const categoryData = useCategoryData();
   const data = useLoaderData();
   const navigate = useNavigate();
 

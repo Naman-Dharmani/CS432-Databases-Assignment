@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import CategoryDataProvider from "@/context/category-provider";
 
 import ErrorPage from "@/error-page";
 import Root from "@/routes/Root";
@@ -89,7 +90,9 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ThemeProvider defaultTheme="dark" storageKey="portal-ui-theme">
-      <RouterProvider router={router} />
+      <CategoryDataProvider>
+        <RouterProvider router={router} />
+      </CategoryDataProvider>
     </ThemeProvider>
   </React.StrictMode>,
 );

@@ -1,9 +1,8 @@
-import { CategoryDataContext } from "../context/category";
-import { useContext } from "react";
+import { Link, useLoaderData } from "react-router-dom";
 import { HeartIcon } from "lucide-react";
-import { useLoaderData } from "react-router-dom";
-import { Badge } from "../components/ui/badge";
-import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+
+import { useCategoryData } from "@/context/category-provider";
 
 async function loader({ request }) {
   const url = new URL(request.url);
@@ -14,7 +13,7 @@ async function loader({ request }) {
 
 export default function Home() {
   const data = useLoaderData();
-  const categoryData = useContext(CategoryDataContext);
+  const categoryData = useCategoryData();
 
   return (
     <div className="bg-background">
@@ -71,7 +70,7 @@ export default function Home() {
                 Categories
               </h2>
               <div className="space-y-1">
-                {categoryData.categories.map((category) => (
+                {categoryData.categories?.map((category) => (
                   <button
                     key={category.category_id}
                     className="inline-flex h-9 w-full items-center justify-start whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
@@ -273,12 +272,8 @@ export default function Home() {
                                 <img
                                   alt="Functional Fury"
                                   className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  data-nimg="1"
-                                  decoding="async"
                                   height="150"
-                                  loading="lazy"
-                                  src="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1513745405825-efaf9a49315f%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75"
-                                  srcSet="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1513745405825-efaf9a49315f%3Fw%3D300%26dpr%3D2%26q%3D80&w=256&q=75 1x, /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1513745405825-efaf9a49315f%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75 2x"
+                                  src="/placeholder.svg"
                                   style={{
                                     color: "transparent",
                                   }}
@@ -305,8 +300,7 @@ export default function Home() {
                                   decoding="async"
                                   height="150"
                                   loading="lazy"
-                                  src="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1614113489855-66422ad300a4%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75"
-                                  srcSet="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1614113489855-66422ad300a4%3Fw%3D300%26dpr%3D2%26q%3D80&w=256&q=75 1x, /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1614113489855-66422ad300a4%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75 2x"
+                                  src="/placeholder.svg"
                                   style={{
                                     color: "transparent",
                                   }}
@@ -333,8 +327,7 @@ export default function Home() {
                                   decoding="async"
                                   height="150"
                                   loading="lazy"
-                                  src="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1446185250204-f94591f7d702%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75"
-                                  srcSet="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1446185250204-f94591f7d702%3Fw%3D300%26dpr%3D2%26q%3D80&w=256&q=75 1x, /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1446185250204-f94591f7d702%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75 2x"
+                                  src="/placeholder.svg"
                                   style={{
                                     color: "transparent",
                                   }}
@@ -361,8 +354,7 @@ export default function Home() {
                                   decoding="async"
                                   height="150"
                                   loading="lazy"
-                                  src="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1468817814611-b7edf94b5d60%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75"
-                                  srcSet="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1468817814611-b7edf94b5d60%3Fw%3D300%26dpr%3D2%26q%3D80&w=256&q=75 1x, /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1468817814611-b7edf94b5d60%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75 2x"
+                                  src="/placeholder.svg"
                                   style={{
                                     color: "transparent",
                                   }}
@@ -385,12 +377,8 @@ export default function Home() {
                                 <img
                                   alt="The Art of Reusability"
                                   className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  data-nimg="1"
-                                  decoding="async"
                                   height="150"
-                                  loading="lazy"
-                                  src="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1490300472339-79e4adc6be4a%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75"
-                                  srcSet="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1490300472339-79e4adc6be4a%3Fw%3D300%26dpr%3D2%26q%3D80&w=256&q=75 1x, /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1490300472339-79e4adc6be4a%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75 2x"
+                                  src="/placeholder.svg"
                                   style={{
                                     color: "transparent",
                                   }}
