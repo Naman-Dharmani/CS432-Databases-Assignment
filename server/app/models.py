@@ -101,7 +101,11 @@ class Product(db.Model):
     # categories = relationship('Category', backref='product_categories', lazy='dynamic', cascade="all,delete")
     # seller = relationship('Seller', backref='product_seller', lazy='dynamic', cascade="all,delete")
     # transactions = relationship('Transaction', backref='product', lazy='dynamic', cascade="all,delete")
-    chat_system = relationship('ChatSystem', backref='product', lazy='dynamic', cascade="all,delete")
+    # chat_system = relationship('ChatSystem', backref='product', lazy='dynamic', cascade="all,delete")
+    sender_messages = relationship('ChatSystem', foreign_keys='ChatSystem.prod_id', backref='product_chat_sender', cascade="all,delete")
+    receiver_messages = relationship('ChatSystem', foreign_keys='ChatSystem.prod_id', backref='product_chat_receiver', cascade="all,delete")
+    seller_transactions = relationship('Transaction', backref='product_seller', cascade="all,delete")
+    buyer_transactions = relationship('Transaction', backref='product_buyer', cascade="all,delete")
 
     def __repr__(self):
         return f"<Product(prod_id={self.prod_id}, prod_title='{self.prod_title}', prod_condition='{self.prod_condition}')>"

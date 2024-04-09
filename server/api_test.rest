@@ -89,7 +89,7 @@ Content-Type: application/json
 }
 
 ### Delete a Product
-DELETE {{baseURL}}/product/11
+DELETE {{baseURL}}/product/1
 
 #######################
 ##### User Routes #####
