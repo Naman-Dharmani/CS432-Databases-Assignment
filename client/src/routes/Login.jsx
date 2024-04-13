@@ -9,16 +9,28 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import axios from "axios";
 import { json, Form, redirect, useActionData } from "react-router-dom";
 
 async function action({ request }) {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
 
+  // const res = fetch(`${import.meta.env.VITE_URL}/login`);
+  axios.get(`${import.meta.env.VITE_URL}/login`, {
+    headers: {
+      "Access-Control-Allow-Origin": "* ",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  }).then((res) => {
+    console.warn(res);
+  });
+
+
   // check if credentials are correct
   if (Math.random() < 0.5) {
-    return redirect("/");
-    // return json({ ok: true }, { status: 200 });
+    // return redirect("/");
+    return json({ ok: true }, { status: 200 });
   } else {
     return json({ msg: "Invalid credentials" }, { status: 403 });
   }

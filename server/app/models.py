@@ -1,56 +1,106 @@
-from sqlalchemy import Column, Integer, String, Enum, DECIMAL, TIMESTAMP, Boolean, ForeignKey, Text, CheckConstraint, TIME
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Enum,
+    DECIMAL,
+    TIMESTAMP,
+    Boolean,
+    ForeignKey,
+    Text,
+    CheckConstraint,
+    TIME,
+)
 from sqlalchemy.orm import relationship
-from flask_login import UserMixin
+from flask_login import UserMixin, LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from . import db
+from flask_sqlalchemy import SQLAlchemy
+from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
+
+# from . import db
+db = SQLAlchemy()
+
+
+class OAuth(OAuthConsumerMixin, db.Model):
+    provider_user_id = Column(String(256), unique=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("User.user_id"), nullable=False)
+    user = relationship("User")
 
 
 class User(UserMixin, db.Model):
-
-    __tablename__ = 'User'
+    __tablename__ = "User"
     user_id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(40), nullable=False)
     email = Column(String(60), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
-    date_joined = Column(TIMESTAMP, nullable=False,
-                         server_default=db.func.current_timestamp())
+    date_joined = Column(
+        TIMESTAMP, nullable=False, server_default=db.func.current_timestamp()
+    )
     phone_no = Column(String(10), nullable=False, unique=True)
-    gender = Column(Enum('Male', 'Female', 'Other'), nullable=False)
+    gender = Column(Enum("Male", "Female", "Other"), nullable=False)
     time_availability_start = Column(TIME)
     time_availability_end = Column(TIME)
     residence_location = Column(String(255), nullable=False)
     residence_number = Column(String(255), nullable=False)
     is_admin = Column(Boolean, nullable=False, default=False)
-    anonymity_level = Column(Enum('Visible', 'Anonymous'),
-                             nullable=False, default='Visible')
-    theme_preference = Column(Enum('Dark', 'Light'), default='Light')
-    language_preference = Column(Enum('English', 'Hindi'), default='English')
-    notification_preference = Column(
-        Enum('All', 'Chat', 'None'), default='All')
+    anonymity_level = Column(
+        Enum("Visible", "Anonymous"), nullable=False, default="Visible"
+    )
+    theme_preference = Column(Enum("Dark", "Light"), default="Light")
+    language_preference = Column(Enum("English", "Hindi"), default="English")
+    notification_preference = Column(Enum("All", "Chat", "None"), default="All")
     user_images = relationship(
-        'User_Image', backref='user', lazy='dynamic', cascade="all,delete")
+        "User_Image", backref="user", lazy="dynamic", cascade="all,delete"
+    )
     notifications = relationship(
-        'Notification', backref='user', lazy='dynamic', cascade="all,delete")
-    devices = relationship('Devices', backref='user',
-                           lazy='dynamic', cascade="all,delete")
-    interests = relationship('Interest', backref='user',
-                             lazy='dynamic', cascade="all,delete")
-    listings = relationship('Listing', backref='user',
-                            lazy='dynamic', cascade="all,delete")
-    seller = relationship('Seller', backref='user',
-                          lazy='dynamic', cascade="all,delete")
+        "Notification", backref="user", lazy="dynamic", cascade="all,delete"
+    )
+    devices = relationship(
+        "Devices", backref="user", lazy="dynamic", cascade="all,delete"
+    )
+    interests = relationship(
+        "Interest", backref="user", lazy="dynamic", cascade="all,delete"
+    )
+    listings = relationship(
+        "Listing", backref="user", lazy="dynamic", cascade="all,delete"
+    )
+    seller = relationship(
+        "Seller", backref="user", lazy="dynamic", cascade="all,delete"
+    )
     # products = relationship('Product', backref='user', lazy='dynamic', cascade="all,delete")
     # app_feedback = relationship('App_Feedback', backref='user', lazy='dynamic', cascade="all,delete")
     # reviews = relationship('Review', backref='user', lazy='dynamic', cascade="all,delete")
     # transactions = relationship('Transaction', backref='user', lazy='dynamic', cascade="all,delete")
-    sent_messages = relationship('ChatSystem', foreign_keys='ChatSystem.sender_id', backref='sender', cascade="all,delete")
-    received_messages = relationship('ChatSystem', foreign_keys='ChatSystem.reciever_id', backref='receiver', cascade="all,delete")
-    seller_transactions = relationship('Transaction', foreign_keys='Transaction.seller_id', backref='seller', cascade="all,delete")
-    buyer_transactions = relationship('Transaction', foreign_keys='Transaction.buyer_id', backref='buyer', cascade="all,delete")
+    sent_messages = relationship(
+        "ChatSystem",
+        foreign_keys="ChatSystem.sender_id",
+        backref="sender",
+        cascade="all,delete",
+    )
+    received_messages = relationship(
+        "ChatSystem",
+        foreign_keys="ChatSystem.reciever_id",
+        backref="receiver",
+        cascade="all,delete",
+    )
+    seller_transactions = relationship(
+        "Transaction",
+        foreign_keys="Transaction.seller_id",
+        backref="seller",
+        cascade="all,delete",
+    )
+    buyer_transactions = relationship(
+        "Transaction",
+        foreign_keys="Transaction.buyer_id",
+        backref="buyer",
+        cascade="all,delete",
+    )
 
     def __repr__(self):
-        return f"<User(user_id={self.user_id}, name='{self.name}', email='{self.email}')>"
+        return (
+            f"<User(user_id={self.user_id}, name='{self.name}', email='{self.email}')>"
+        )
 
     def get_id(self):
         return self.user_id
@@ -70,42 +120,61 @@ class User(UserMixin, db.Model):
 
 
 class Product(db.Model):
-
-    __tablename__ = 'Product'
+    __tablename__ = "Product"
     prod_id = Column(Integer, primary_key=True, autoincrement=True)
     # user_id = Column(Integer, ForeignKey('User.user_id'))
     prod_title = Column(String(30), nullable=False)
     description = Column(String(400), nullable=False)
-    status = Column(Enum('Available', 'Archived', 'Sold'),
-                    nullable=False, default='Available')
-    prod_condition = Column(Enum('New', 'Used'),
-                            nullable=False, default='Used')
+    status = Column(
+        Enum("Available", "Archived", "Sold"), nullable=False, default="Available"
+    )
+    prod_condition = Column(Enum("New", "Used"), nullable=False, default="Used")
     listed_price = Column(DECIMAL(10, 2), nullable=False)
     quantity = Column(Integer, nullable=False, default=1)
-    date_listed = Column(TIMESTAMP, nullable=False,
-                         server_default=db.func.current_timestamp())
+    date_listed = Column(
+        TIMESTAMP, nullable=False, server_default=db.func.current_timestamp()
+    )
     date_modified = Column(TIMESTAMP)
     flagging = Column(Integer, default=0)
-    subcategory_id = Column(Integer, ForeignKey(
-        'Subcategory.subcategory_id'), nullable=False)
+    subcategory_id = Column(
+        Integer, ForeignKey("Subcategory.subcategory_id"), nullable=False
+    )
 
     hashtags = relationship(
-        'Hashtag', backref='product_hashtags', lazy='joined', cascade="all,delete")
+        "Hashtag", backref="product_hashtags", lazy="joined", cascade="all,delete"
+    )
     product_images = relationship(
-        'Product_Image', backref='product_images', lazy='joined', cascade="all,delete")
+        "Product_Image", backref="product_images", lazy="joined", cascade="all,delete"
+    )
     interests = relationship(
-        'Interest', backref='product_interests', lazy='dynamic', cascade="all,delete")
+        "Interest", backref="product_interests", lazy="dynamic", cascade="all,delete"
+    )
     listings = relationship(
-        'Listing', backref='product_listings', lazy='dynamic', cascade="all,delete")
-    subcategory = relationship('Subcategory', overlaps="subcategory")
+        "Listing", backref="product_listings", lazy="dynamic", cascade="all,delete"
+    )
+    subcategory = relationship("Subcategory", overlaps="subcategory")
     # categories = relationship('Category', backref='product_categories', lazy='dynamic', cascade="all,delete")
     # seller = relationship('Seller', backref='product_seller', lazy='dynamic', cascade="all,delete")
     # transactions = relationship('Transaction', backref='product', lazy='dynamic', cascade="all,delete")
     # chat_system = relationship('ChatSystem', backref='product', lazy='dynamic', cascade="all,delete")
-    sender_messages = relationship('ChatSystem', foreign_keys='ChatSystem.prod_id', backref='product_chat_sender', cascade="all,delete")
-    receiver_messages = relationship('ChatSystem', foreign_keys='ChatSystem.prod_id', backref='product_chat_receiver', cascade="all,delete")
-    seller_transactions = relationship('Transaction', backref='product_seller', cascade="all,delete")
-    buyer_transactions = relationship('Transaction', backref='product_buyer', cascade="all,delete")
+    sender_messages = relationship(
+        "ChatSystem",
+        foreign_keys="ChatSystem.prod_id",
+        backref="product_chat_sender",
+        cascade="all,delete",
+    )
+    receiver_messages = relationship(
+        "ChatSystem",
+        foreign_keys="ChatSystem.prod_id",
+        backref="product_chat_receiver",
+        cascade="all,delete",
+    )
+    seller_transactions = relationship(
+        "Transaction", backref="product_seller", cascade="all,delete"
+    )
+    buyer_transactions = relationship(
+        "Transaction", backref="product_buyer", cascade="all,delete"
+    )
 
     def __repr__(self):
         return f"<Product(prod_id={self.prod_id}, prod_title='{self.prod_title}', prod_condition='{self.prod_condition}')>"
@@ -119,11 +188,12 @@ class Product(db.Model):
 
 
 class Chat(db.Model):
-    __tablename__ = 'Chat'
+    __tablename__ = "Chat"
 
     message_id = Column(Integer, primary_key=True, autoincrement=True)
-    chat_time = Column(TIMESTAMP, nullable=False,
-                       server_default=db.func.current_timestamp())
+    chat_time = Column(
+        TIMESTAMP, nullable=False, server_default=db.func.current_timestamp()
+    )
     text = Column(String(255), nullable=False)
     read_status = Column(Boolean, nullable=False, default=False)
 
@@ -135,13 +205,14 @@ class Chat(db.Model):
 
 
 class Hashtag(db.Model):
-    __tablename__ = 'Hashtag'
+    __tablename__ = "Hashtag"
 
     tag_id = Column(Integer, primary_key=True, autoincrement=True)
     tag_label = Column(String(27), nullable=False)
-    product_id = Column(Integer, ForeignKey('Product.prod_id'), nullable=False)
-    product = relationship("Product", back_populates="hashtags",
-                           overlaps="hashtags,product_hashtags")
+    product_id = Column(Integer, ForeignKey("Product.prod_id"), nullable=False)
+    product = relationship(
+        "Product", back_populates="hashtags", overlaps="hashtags,product_hashtags"
+    )
 
     def __repr__(self):
         return f"<Hashtag(tag_id={self.tag_id}, tag_label='{self.tag_label}', product_id={self.product_id})>"
@@ -151,14 +222,13 @@ class Hashtag(db.Model):
 
 
 class Notification(db.Model):
-    __tablename__ = 'Notification'
+    __tablename__ = "Notification"
 
     notification_id = Column(Integer, primary_key=True, autoincrement=True)
-    content = Column(String(255), nullable=False, default='')
-    time = Column(TIMESTAMP, nullable=False,
-                  server_default=db.func.current_timestamp())
+    content = Column(String(255), nullable=False, default="")
+    time = Column(TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
     read_status = Column(Boolean, nullable=False, default=False)
-    user_id = Column(Integer, ForeignKey('User.user_id'), nullable=False)
+    user_id = Column(Integer, ForeignKey("User.user_id"), nullable=False)
     # user = relationship("User")
 
     def __repr__(self):
@@ -166,14 +236,18 @@ class Notification(db.Model):
 
 
 class Category(db.Model):
-    __tablename__ = 'Category'
+    __tablename__ = "Category"
 
     category_id = Column(Integer, primary_key=True, autoincrement=True)
     category_name = Column(String(50), nullable=False)
     # prod_id = Column(Integer, ForeignKey('Product.prod_id'), nullable=False)
     # product = relationship('Product', back_populates='categories', overlaps='categories,product_categories')
     subcategories = relationship(
-        'Subcategory', backref='category_subcategory', lazy='dynamic', cascade="all,delete")
+        "Subcategory",
+        backref="category_subcategory",
+        lazy="dynamic",
+        cascade="all,delete",
+    )
 
     def __repr__(self):
         return f"<Category(category_id={self.category_id}, category_name='{self.category_name}', prod_id={self.prod_id})>"
@@ -183,14 +257,16 @@ class Category(db.Model):
 
 
 class Subcategory(db.Model):
-    __tablename__ = 'Subcategory'
+    __tablename__ = "Subcategory"
 
     subcategory_id = Column(Integer, primary_key=True, autoincrement=True)
     subcategory_name = Column(String(50), nullable=False)
-    category_id = Column(Integer, ForeignKey(
-        'Category.category_id'), nullable=False)
-    category = relationship("Category", back_populates="subcategories",
-                            overlaps="subcategories,category_subcategory")
+    category_id = Column(Integer, ForeignKey("Category.category_id"), nullable=False)
+    category = relationship(
+        "Category",
+        back_populates="subcategories",
+        overlaps="subcategories,category_subcategory",
+    )
     # products = relationship('Product')
 
     def __repr__(self):
@@ -201,11 +277,11 @@ class Subcategory(db.Model):
 
 
 class User_Image(db.Model):
-    __tablename__ = 'User_Image'
+    __tablename__ = "User_Image"
 
     image_id = Column(Integer, primary_key=True, autoincrement=True)
     image_url = Column(String(3072), nullable=False)
-    user_id = Column(Integer, ForeignKey('User.user_id'))
+    user_id = Column(Integer, ForeignKey("User.user_id"))
     image_caption = Column(String(20))
 
     def __repr__(self):
@@ -213,11 +289,11 @@ class User_Image(db.Model):
 
 
 class Product_Image(db.Model):
-    __tablename__ = 'Product_Image'
+    __tablename__ = "Product_Image"
 
     image_id = Column(Integer, primary_key=True, autoincrement=True)
     image_url = Column(String(3072), nullable=False)
-    prod_id = Column(Integer, ForeignKey('Product.prod_id'))
+    prod_id = Column(Integer, ForeignKey("Product.prod_id"))
     image_caption = Column(String(100), default="This is a product image")
 
     def __repr__(self):
@@ -228,26 +304,29 @@ class Product_Image(db.Model):
 
 
 class Seller(db.Model):
-    __tablename__ = 'Seller'
+    __tablename__ = "Seller"
 
-    user_id = Column(Integer, ForeignKey('User.user_id'), primary_key=True)
+    user_id = Column(Integer, ForeignKey("User.user_id"), primary_key=True)
     avg_seller_rating = Column(DECIMAL(10, 2))
-    preferred_payment_method = Column(Enum(
-        'Cash', 'UPI', 'Net Banking', name='payment_method'), nullable=False, default='UPI')
+    preferred_payment_method = Column(
+        Enum("Cash", "UPI", "Net Banking", name="payment_method"),
+        nullable=False,
+        default="UPI",
+    )
 
     def __repr__(self):
         return f"<Seller(user_id={self.user_id}, avg_seller_rating={self.avg_seller_rating}, preferred_payment_method='{self.preferred_payment_method}')>"
 
 
 class Review(db.Model):
-    __tablename__ = 'Review'
+    __tablename__ = "Review"
 
     review_id = Column(Integer, primary_key=True, autoincrement=True)
-    rating = Column(Enum('1', '2', '3', '4', '5',
-                    name='rating'), nullable=False)
+    rating = Column(Enum("1", "2", "3", "4", "5", name="rating"), nullable=False)
     review_text = Column(String(255))
-    date_of_review = Column(TIMESTAMP, nullable=False,
-                            server_default=db.func.current_timestamp())
+    date_of_review = Column(
+        TIMESTAMP, nullable=False, server_default=db.func.current_timestamp()
+    )
 
     def __repr__(self):
         return f"<Review(review_id={self.review_id}, rating='{self.rating}', review_text='{self.review_text}', date_of_review='{self.date_of_review}')>"
@@ -257,12 +336,13 @@ class Review(db.Model):
 
 
 class Devices(db.Model):
-    __tablename__ = 'Devices'
+    __tablename__ = "Devices"
 
     device_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('User.user_id'), nullable=False)
-    date_time_login = Column(TIMESTAMP, nullable=False,
-                             server_default=db.func.current_timestamp())
+    user_id = Column(Integer, ForeignKey("User.user_id"), nullable=False)
+    date_time_login = Column(
+        TIMESTAMP, nullable=False, server_default=db.func.current_timestamp()
+    )
     device_ip = Column(String(40), nullable=False)
     device_user_agent = Column(Text, nullable=False)
 
@@ -271,14 +351,16 @@ class Devices(db.Model):
 
 
 class App_Feedback(db.Model):
-    __tablename__ = 'App_Feedback'
+    __tablename__ = "App_Feedback"
 
     feedback_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('User.user_id'), nullable=False)
-    feedback_time = Column(TIMESTAMP, nullable=False,
-                           server_default=db.func.current_timestamp())
+    user_id = Column(Integer, ForeignKey("User.user_id"), nullable=False)
+    feedback_time = Column(
+        TIMESTAMP, nullable=False, server_default=db.func.current_timestamp()
+    )
     feedback_rating = Column(
-        Enum('1', '2', '3', '4', '5', name='feedback_rating'), nullable=False)
+        Enum("1", "2", "3", "4", "5", name="feedback_rating"), nullable=False
+    )
     feedback_text = Column(Text)
 
     def __repr__(self):
@@ -286,50 +368,56 @@ class App_Feedback(db.Model):
 
 
 class Transaction(db.Model):
-    __tablename__ = 'transactions'
+    __tablename__ = "transactions"
 
     transaction_id = Column(Integer, primary_key=True)
-    buyer_id = Column(Integer, ForeignKey('User.user_id'))
-    seller_id = Column(Integer, ForeignKey('User.user_id'))
+    buyer_id = Column(Integer, ForeignKey("User.user_id"))
+    seller_id = Column(Integer, ForeignKey("User.user_id"))
     review_id = Column(Integer)
-    prod_id = Column(Integer, ForeignKey('Product.prod_id'))
-    transaction_date = Column(
-        TIMESTAMP, server_default=db.func.current_timestamp())
+    prod_id = Column(Integer, ForeignKey("Product.prod_id"))
+    transaction_date = Column(TIMESTAMP, server_default=db.func.current_timestamp())
     selling_price = Column(DECIMAL(10, 2), nullable=False)
     quantity = Column(Integer, nullable=False)
-    __table_args__ = (
-        CheckConstraint('quantity >= 1', name='quantity_check'),
-    )
+    __table_args__ = (CheckConstraint("quantity >= 1", name="quantity_check"),)
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class Interest(db.Model):
-    __tablename__ = 'interests'
+    __tablename__ = "interests"
 
-    user_id = Column(Integer, ForeignKey('User.user_id'), primary_key=True)
-    prod_id = Column(Integer, ForeignKey('Product.prod_id'), primary_key=True)
+    user_id = Column(Integer, ForeignKey("User.user_id"), primary_key=True)
+    prod_id = Column(Integer, ForeignKey("Product.prod_id"), primary_key=True)
 
 
 class Listing(db.Model):
-    __tablename__ = 'listings'
+    __tablename__ = "listings"
 
-    user_id = Column(Integer, ForeignKey('User.user_id'), primary_key=True)
-    prod_id = Column(Integer, ForeignKey('Product.prod_id'), primary_key=True)
+    user_id = Column(Integer, ForeignKey("User.user_id"), primary_key=True)
+    prod_id = Column(Integer, ForeignKey("Product.prod_id"), primary_key=True)
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class ChatSystem(db.Model):
-    __tablename__ = 'chat_system'
+    __tablename__ = "chat_system"
 
-    message_id = Column(Integer, ForeignKey(
-        'Chat.message_id'), primary_key=True)
-    sender_id = Column(Integer, ForeignKey('User.user_id'), primary_key=True)
-    reciever_id = Column(Integer, ForeignKey('User.user_id'), primary_key=True)
-    prod_id = Column(Integer, ForeignKey('Product.prod_id'), primary_key=True)
+    message_id = Column(Integer, ForeignKey("Chat.message_id"), primary_key=True)
+    sender_id = Column(Integer, ForeignKey("User.user_id"), primary_key=True)
+    reciever_id = Column(Integer, ForeignKey("User.user_id"), primary_key=True)
+    prod_id = Column(Integer, ForeignKey("Product.prod_id"), primary_key=True)
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+# setup login manager
+login_manager = LoginManager()
+login_manager.login_view = "google.login"
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
