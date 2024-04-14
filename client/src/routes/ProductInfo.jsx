@@ -1,77 +1,26 @@
-import { Form, useLoaderData, useNavigate } from "react-router-dom";
+import { Form, useLoaderData } from "react-router-dom";
 
-import {
-  // ChevronLeft,
-  // Home,
-  // LineChart,
-  // Package,
-  // Package2,
-  // PanelLeft,
-  // PlusCircle,
-  // Search,
-  // Settings,
-  // ShoppingCart,
-  CircleX,
-  Upload,
-  // Users2,
-} from "lucide-react";
-// import { Badge } from "@/components/ui/badge";
+import { CircleX } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  // CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-// import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { HeartIcon } from "lucide-react";
-// import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-// import {
-//   Tooltip,
-//   TooltipContent,
-//   TooltipTrigger,
-// } from "@/components/ui/tooltip";
 
 async function loader({ params }) {
-  return fetch(`${import.meta.env.VITE_URL}/product/${params.prod_id}`);
+  return fetch(`${import.meta.env.VITE_URL}/product/${params.prod_id}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
+    },
+  });
 }
 
 export default function ProductInfo() {
   const data = useLoaderData();
-  const navigate = useNavigate();
 
-  const [imageURL, setImageURL] = useState(
+  const [imageURL] = useState(
     data?.product_images[0]?.image_url || "/placeholder.svg",
   );
 
@@ -79,10 +28,10 @@ export default function ProductInfo() {
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Form method="post">
-            <div className="mx-auto grid max-w-[65rem] flex-1 auto-rows-max gap-4">
-              <div className="flex items-center gap-4">
-                {/* <Button
+          {/* <Form method="post"> */}
+          <div className="mx-auto grid max-w-[65rem] flex-1 auto-rows-max gap-4">
+            <div className="flex items-center gap-4">
+              {/* <Button
                   variant="outline"
                   size="icon"
                   className="h-7 w-7"
@@ -91,14 +40,14 @@ export default function ProductInfo() {
                   <ChevronLeft className="h-4 w-4" />
                   <span className="sr-only">Back</span>
                 </Button> */}
-                <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                  Product Details
-                </h1>
-                {/* <Badge variant="outline" className="ml-auto sm:ml-0">
+              <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+                Product Details
+              </h1>
+              {/* <Badge variant="outline" className="ml-auto sm:ml-0">
                   In stock
                 </Badge> */}
-                <div className="hidden items-center gap-2 md:ml-auto md:flex">
-                  {/* <Button
+              <div className="hidden items-center gap-2 md:ml-auto md:flex">
+                {/* <Button
                     variant="outline"
                     size="sm"
                     onClick={() => navigate("/products", { replace: true })}
@@ -106,73 +55,73 @@ export default function ProductInfo() {
                   >
                     Discard
                   </Button> */}
-                  <Button size="sm" type="submit">
-                    <HeartIcon className="mr-2 h-4 w-4 fill-black" />
-                    Interested
-                  </Button>
-                </div>
+                <Button size="sm" type="submit">
+                  <HeartIcon className="mr-2 h-4 w-4 fill-black" />
+                  Interested
+                </Button>
               </div>
-              <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
-                <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
-                  <Card>
-                    <CardHeader>
-                      {/* <CardTitle>Product Details</CardTitle> */}
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid gap-6">
-                        <div className="grid gap-3">
-                          <Label htmlFor="name">Title</Label>
-                          <Input
-                            id="name"
-                            type="text"
-                            className="w-full"
-                            name="prod_title"
-                            defaultValue={data?.prod_title}
-                          />
-                        </div>
-                        <Card className="overflow-hidden">
-                          <CardHeader>
-                            <CardTitle>Product Images</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="grid gap-2">
-                              {/* <div className="group relative"> */}
-                              <img
-                                alt={data?.product_images[0]?.image_caption}
-                                className="aspect-square w-full rounded-md object-contain"
-                                height="250"
-                                width="250"
-                                src={imageURL || "/placeholder.svg"}
-                              />
-                              {/* <button
+            </div>
+            <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
+              <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
+                <Card>
+                  <CardHeader>
+                    {/* <CardTitle>Product Details</CardTitle> */}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-6">
+                      <div className="grid gap-3">
+                        <Label htmlFor="name">Title</Label>
+                        <Input readOnly
+                          id="name"
+                          type="text"
+                          className="w-full"
+                          name="prod_title"
+                          defaultValue={data?.prod_title}
+                        />
+                      </div>
+                      <Card className="overflow-hidden">
+                        <CardHeader>
+                          <CardTitle>Product Images</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid gap-2">
+                            {/* <div className="group relative"> */}
+                            <img
+                              alt={data?.product_images[0]?.image_caption}
+                              className="aspect-square w-full rounded-md object-contain"
+                              height="250"
+                              width="250"
+                              src={imageURL || "/placeholder.svg"}
+                            />
+                            {/* <button
                             size="icon"
                             className="absolute right-0 top-0 hidden -translate-y-1/2 translate-x-1/2 rounded-full bg-slate-800 p-0.5 group-hover:block dark:bg-slate-200"
                           >
                             <CircleX className="h-5 w-5 stroke-white dark:stroke-black" />
                           </button>
                         </div> */}
-                              <div className="grid grid-cols-3 gap-2">
-                                {data?.product_images.slice(1).map((image) => (
-                                  <div
-                                    className="group relative"
-                                    key={image.image_id}
+                            <div className="grid grid-cols-3 gap-2">
+                              {data?.product_images.slice(1).map((image) => (
+                                <div
+                                  className="group relative"
+                                  key={image.image_id}
+                                >
+                                  <img
+                                    alt={image.image_caption}
+                                    className="aspect-square w-full rounded-md object-cover"
+                                    height="84"
+                                    width="84"
+                                    src={image.image_url}
+                                  />
+                                  <button
+                                    size="icon"
+                                    className="absolute right-0 top-0 hidden -translate-y-1/2 translate-x-1/2 rounded-full bg-slate-800 p-0.5 group-hover:block dark:bg-slate-200"
                                   >
-                                    <img
-                                      alt={image.image_caption}
-                                      className="aspect-square w-full rounded-md object-cover"
-                                      height="84"
-                                      width="84"
-                                      src={image.image_url}
-                                    />
-                                    <button
-                                      size="icon"
-                                      className="absolute right-0 top-0 hidden -translate-y-1/2 translate-x-1/2 rounded-full bg-slate-800 p-0.5 group-hover:block dark:bg-slate-200"
-                                    >
-                                      <CircleX className="h-5 w-5 stroke-white dark:stroke-black" />
-                                    </button>
-                                  </div>
-                                ))}
-                                {/* <Dialog>
+                                    <CircleX className="h-5 w-5 stroke-white dark:stroke-black" />
+                                  </button>
+                                </div>
+                              ))}
+                              {/* <Dialog>
                             <DialogTrigger asChild>
                               <button className="flex aspect-square w-full items-center justify-center rounded-md border border-dashed">
                                 <Upload className="h-4 w-4 text-muted-foreground" />
@@ -192,7 +141,7 @@ export default function ProductInfo() {
                                   <Label htmlFor="url" className="text-right">
                                     Image URL
                                   </Label>
-                                  <Input
+                                  <Input readOnly
                                     id="url"
                                     value={imageURL}
                                     onChange={(e) =>
@@ -209,14 +158,14 @@ export default function ProductInfo() {
                               </DialogFooter>
                             </DialogContent>
                           </Dialog> */}
-                              </div>
                             </div>
-                          </CardContent>
-                        </Card>
-                        {/* <div className="flex gap-4">
+                          </div>
+                        </CardContent>
+                      </Card>
+                      {/* <div className="flex gap-4">
                           <div className="grid flex-grow gap-3">
                             <Label htmlFor="listed_price">Listed Price</Label>
-                            <Input
+                            <Input readOnly
                               type="number"
                               id="listed_price"
                               name="listed_price"
@@ -226,7 +175,7 @@ export default function ProductInfo() {
                           </div>
                           <div className="grid flex-grow-0 gap-3">
                             <Label htmlFor="quantity">Quantity</Label>
-                            <Input
+                            <Input readOnly
                               type="number"
                               id="quantity"
                               name="quantity"
@@ -236,21 +185,21 @@ export default function ProductInfo() {
                           </div>
                           <div className="hidden">
                             <Label htmlFor="image_url">Image URL</Label>
-                            <Input id="image_url" name="image_url" readOnly />
+                            <Input readOnly id="image_url" name="image_url" readOnly />
                           </div>
                         </div> */}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Product Category</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid gap-6 sm:grid-cols-3">
-                        <div className="grid gap-3">
-                          <Label htmlFor="category">Category</Label>
-                          {/* <Select
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Product Category</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-6 sm:grid-cols-3">
+                      <div className="grid gap-3">
+                        <Label htmlFor="category">Category</Label>
+                        {/* <Select
                             value={currentCategory}
                             onValueChange={(newCategory) => {
                               setCurrentCategory(newCategory);
@@ -274,11 +223,11 @@ export default function ProductInfo() {
                               ))}
                             </SelectContent>
                           </Select> */}
-                          <Input value={data.category.category_name} readOnly />
-                        </div>
-                        <div className="grid gap-3">
-                          <Label htmlFor="subcategory">Subcategory</Label>
-                          {/* <Select
+                        <Input readOnly value={data.category.category_name} />
+                      </div>
+                      <div className="grid gap-3">
+                        <Label htmlFor="subcategory">Subcategory</Label>
+                        {/* <Select
                             value={currentSubcategory}
                             onValueChange={setCurrentSubcategory}
                           >
@@ -305,15 +254,14 @@ export default function ProductInfo() {
                                 ))}
                             </SelectContent>
                           </Select> */}
-                          <Input
-                            value={data.subcategory.subcategory_name}
-                            readOnly
-                          />
-                        </div>
+                        <Input readOnly
+                          value={data.subcategory.subcategory_name}
+                        />
                       </div>
-                    </CardContent>
-                  </Card>
-                  {/* <Card>
+                    </div>
+                  </CardContent>
+                </Card>
+                {/* <Card>
                     <CardHeader>
                       <CardTitle>Stock</CardTitle>
                       <CardDescription>
@@ -339,7 +287,7 @@ export default function ProductInfo() {
                               <Label htmlFor="stock-1" className="sr-only">
                                 Stock
                               </Label>
-                              <Input
+                              <Input readOnly
                                 id="stock-1"
                                 type="number"
                                 defaultValue="100"
@@ -349,7 +297,7 @@ export default function ProductInfo() {
                               <Label htmlFor="price-1" className="sr-only">
                                 Price
                               </Label>
-                              <Input
+                              <Input readOnly
                                 id="price-1"
                                 type="number"
                                 defaultValue="99.99"
@@ -375,7 +323,7 @@ export default function ProductInfo() {
                               <Label htmlFor="stock-2" className="sr-only">
                                 Stock
                               </Label>
-                              <Input
+                              <Input readOnly
                                 id="stock-2"
                                 type="number"
                                 defaultValue="143"
@@ -385,7 +333,7 @@ export default function ProductInfo() {
                               <Label htmlFor="price-2" className="sr-only">
                                 Price
                               </Label>
-                              <Input
+                              <Input readOnly
                                 id="price-2"
                                 type="number"
                                 defaultValue="99.99"
@@ -411,7 +359,7 @@ export default function ProductInfo() {
                               <Label htmlFor="stock-3" className="sr-only">
                                 Stock
                               </Label>
-                              <Input
+                              <Input readOnly
                                 id="stock-3"
                                 type="number"
                                 defaultValue="32"
@@ -421,7 +369,7 @@ export default function ProductInfo() {
                               <Label htmlFor="price-3" className="sr-only">
                                 Stock
                               </Label>
-                              <Input
+                              <Input readOnly
                                 id="price-3"
                                 type="number"
                                 defaultValue="99.99"
@@ -449,59 +397,79 @@ export default function ProductInfo() {
                       </Button>
                     </CardFooter>
                   </Card> */}
-                </div>
-                <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Product Description</CardTitle>
-                      {/* <CardDescription>
+              </div>
+              <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Product Seller</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-6">
+                      <div className="grid gap-3">
+                        <Label htmlFor="seller">Seller</Label>
+                        <Input readOnly
+                          id="seller"
+                          type="text"
+                          className="w-full"
+                          name="seller"
+                          defaultValue={data?.seller.name}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Product Description</CardTitle>
+                    {/* <CardDescription>
                         Lipsum dolor sit amet, consectetur adipiscing elit.
                       </CardDescription> */}
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-col gap-4">
-                        <div className="grid gap-3">
-                          <Label htmlFor="description">Description</Label>
-                          <Textarea
-                            id="description"
-                            name="description"
-                            className="min-h-32"
-                            defaultValue={data?.description}
-                          />
-                        </div>
-                        <div className="grid gap-3">
-                          <Label htmlFor="listed_price">Listed Price</Label>
-                          <Input
-                            type="number"
-                            id="listed_price"
-                            name="listed_price"
-                            min="0"
-                            defaultValue={data?.listed_price}
-                          />
-                        </div>
-                        <div className="grid gap-3">
-                          <Label htmlFor="quantity">Quantity</Label>
-                          <Input
-                            type="number"
-                            id="quantity"
-                            name="quantity"
-                            min="1"
-                            defaultValue={data?.quantity}
-                          />
-                        </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col gap-4">
+                      <div className="grid gap-3">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                          readOnly
+                          id="description"
+                          name="description"
+                          className="min-h-32"
+                          defaultValue={data?.description}
+                        />
                       </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Product Status</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid gap-6">
-                        <div className="grid gap-3">
-                          <Label htmlFor="status">Status</Label>
-                          <Input value={data?.status} readOnly />
-                          {/* <Select name="status" defaultValue={data?.status}>
+                      <div className="grid gap-3">
+                        <Label htmlFor="listed_price">Listed Price</Label>
+                        <Input readOnly
+                          type="number"
+                          id="listed_price"
+                          name="listed_price"
+                          min="0"
+                          defaultValue={data?.listed_price}
+                        />
+                      </div>
+                      <div className="grid gap-3">
+                        <Label htmlFor="quantity">Quantity</Label>
+                        <Input readOnly
+                          type="number"
+                          id="quantity"
+                          name="quantity"
+                          min="1"
+                          defaultValue={data?.quantity}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Product Status</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-6">
+                      <div className="grid gap-3">
+                        <Label htmlFor="status">Status</Label>
+                        <Input readOnly value={data?.status} />
+                        {/* <Select name="status" defaultValue={data?.status}>
                             <SelectTrigger
                               id="status"
                               aria-label="Select status"
@@ -516,22 +484,22 @@ export default function ProductInfo() {
                               <SelectItem value="Sold">Sold</SelectItem>
                             </SelectContent>
                           </Select> */}
-                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-              <div className="flex items-center justify-center gap-2 md:hidden">
-                {/* <Button type="button" variant="outline" size="sm">
-                  Discard
-                </Button> */}
-                <Button size="sm" type="submit">
-                  Interested
-                </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
-          </Form>
+            <div className="flex items-center justify-center gap-2 md:hidden">
+              {/* <Button type="button" variant="outline" size="sm">
+                  Discard
+                </Button> */}
+              <Button size="sm" type="submit">
+                Interested
+              </Button>
+            </div>
+          </div>
+          {/* </Form> */}
         </main>
       </div>
     </div>

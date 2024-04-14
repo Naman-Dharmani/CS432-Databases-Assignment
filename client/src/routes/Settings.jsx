@@ -1,14 +1,48 @@
+import { Form, redirect, useLoaderData } from "react-router-dom";
+
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+
+async function loader() {
+  return fetch(`${import.meta.env.VITE_URL}/user`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
+    },
+  });
+}
+
+async function action({ request }) {
+  const formData = await request.formData();
+  const data = Object.fromEntries(formData);
+
+  const response = await fetch(`${import.meta.env.VITE_URL}/user`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (response.ok) {
+    return redirect("/");
+  } else {
+    throw new Error("Error updating user details");
+  }
+}
 
 export default function Settings() {
+  const data = useLoaderData();
+
   return (
     <div className="hidden space-y-6 p-10 pb-16 md:block">
       <div className="space-y-0.5">
@@ -49,12 +83,6 @@ export default function Settings() {
             >
               Notifications
             </a>
-            {/* <a
-              className="inline-flex h-9 items-center justify-start whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-transparent hover:text-accent-foreground hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-              href="/examples/forms/display"
-            >
-              Display
-            </a> */}
           </nav>
         </aside>
         <div className="flex-1 lg:max-w-2xl">
@@ -70,7 +98,7 @@ export default function Settings() {
               data-orientation="horizontal"
               role="none"
             />
-            <form className="space-y-8">
+            <Form method="post" className="space-y-8">
               <div className="space-y-2">
                 <label
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -78,13 +106,11 @@ export default function Settings() {
                 >
                   Name
                 </label>
-                <input
-                  aria-describedby=":r1bq:-form-item-description"
-                  aria-invalid="false"
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  id=":r1bq:-form-item"
-                  name="username"
+                <Input
+                  type="text"
+                  name="name"
                   placeholder="John Doe"
+                  defaultValue={data?.name}
                 />
                 <p
                   className="text-[0.8rem] text-muted-foreground"
@@ -100,12 +126,10 @@ export default function Settings() {
                 >
                   Email
                 </label>
-                <input
-                  aria-describedby=":r1bq:-form-item-description"
-                  aria-invalid="false"
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  id=":r1bq:-form-item"
+                <Input
+                  name="email"
                   placeholder="a@b.c"
+                  defaultValue={data?.email}
                 />
               </div>
               <div className="space-y-2">
@@ -115,19 +139,14 @@ export default function Settings() {
                 >
                   Phone No.
                 </label>
-                <input
-                  aria-describedby=":r1bq:-form-item-description"
-                  aria-invalid="false"
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  id=":r1bq:-form-item"
+                <Input
+                  type="number"
+                  name="phone_no"
                   placeholder="1234567890"
+                  defaultValue={data?.phone_no}
+                  min="0"
+                  max="9999999999"
                 />
-                {/* <p
-                  className="text-[0.8rem] text-muted-foreground"
-                  id=":r1bq:-form-item-description"
-                >
-                  Phone No.
-                </p> */}
               </div>
               <div className="space-y-2">
                 <label
@@ -136,16 +155,16 @@ export default function Settings() {
                 >
                   Gender
                 </label>
-                <Select>
-                  <SelectTrigger className="w-full" value="Male">
+                <Select defaultValue={data?.gender} name="gender">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       {/* <SelectLabel>Male</SelectLabel> */}
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -157,83 +176,27 @@ export default function Settings() {
                 >
                   Residence
                 </label>
-                <textarea
-                  aria-describedby=":r1bt:-form-item-description"
-                  aria-invalid="false"
-                  className="flex min-h-[60px] w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  defaultValue="IIT Gandhinagar"
+                <Textarea
+                  name="residence_location"
                   placeholder="Residence Location"
+                  defaultValue={data?.residence_location}
                 />
-                <p
+                {/* <p
                   className="text-[0.8rem] text-muted-foreground"
                   id=":r1bt:-form-item-description"
                 >
                   You can <span>@mention</span> other users and organizations to
                   link to them.
-                </p>
+                </p> */}
               </div>
-              <div>
-                <div className="space-y-2">
-                  <label
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    htmlFor=":r1bu:-form-item"
-                  >
-                    URLs
-                  </label>
-                  <p
-                    className="text-[0.8rem] text-muted-foreground"
-                    id=":r1bu:-form-item-description"
-                  >
-                    Add links to your website, blog, or social media profiles.
-                  </p>
-                  <input
-                    aria-describedby=":r1bu:-form-item-description"
-                    aria-invalid="false"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    defaultValue="https://shadcn.com"
-                    id=":r1bu:-form-item"
-                    name="urls.0.value"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label
-                    className="sr-only text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    htmlFor=":r1bv:-form-item"
-                  >
-                    URLs
-                  </label>
-                  <p
-                    className="sr-only text-[0.8rem] text-muted-foreground"
-                    id=":r1bv:-form-item-description"
-                  >
-                    Add links to your website, blog, or social media profiles.
-                  </p>
-                  <input
-                    aria-describedby=":r1bv:-form-item-description"
-                    aria-invalid="false"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    defaultValue="http://twitter.com/shadcn"
-                    id=":r1bv:-form-item"
-                    name="urls.1.value"
-                  />
-                </div>
-                <button
-                  className="mt-2 inline-flex h-8 items-center justify-center whitespace-nowrap rounded-md border border-input bg-background px-3 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                  type="button"
-                >
-                  Add URL
-                </button>
-              </div>
-              <button
-                className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                type="submit"
-              >
-                Update profile
-              </button>
-            </form>
+              <Button type="submit">Update profile</Button>
+            </Form>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+Settings.loader = loader;
+Settings.action = action;

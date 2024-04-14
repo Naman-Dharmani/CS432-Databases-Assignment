@@ -1,20 +1,26 @@
-import { CategoryDataContext } from "../context/category";
-import { useContext } from "react";
+import { useState } from "react";
+import { Link, useLoaderData } from "react-router-dom";
+
+import { useCategoryData } from "@/context/category-provider";
+
 import { HeartIcon } from "lucide-react";
-import { useLoaderData } from "react-router-dom";
-import { Badge } from "../components/ui/badge";
-import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 async function loader({ request }) {
   const url = new URL(request.url);
   const page_num = url.searchParams.get("page");
 
-  return fetch(`${import.meta.env.VITE_URL}/products?page=${page_num || 1}`);
+  return fetch(`${import.meta.env.VITE_URL}/products?page=${page_num || 1}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
+    },
+  });
 }
 
 export default function Home() {
   const data = useLoaderData();
-  const categoryData = useContext(CategoryDataContext);
+  const categoryData = useCategoryData();
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   return (
     <div className="bg-background">
@@ -71,10 +77,11 @@ export default function Home() {
                 Categories
               </h2>
               <div className="space-y-1">
-                {categoryData.categories.map((category) => (
+                {categoryData.categories?.map((category) => (
                   <button
                     key={category.category_id}
                     className="inline-flex h-9 w-full items-center justify-start whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                    onClick={() => setSelectedCategory(category.category_id)}
                   >
                     {category.category_name}
                   </button>
@@ -105,7 +112,7 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <h2 className="text-2xl font-semibold tracking-tight">
-                      Listen Now
+                      Trending Now
                     </h2>
                     <p className="text-sm text-muted-foreground">
                       Top picks for you.
@@ -148,7 +155,15 @@ export default function Home() {
                       >
                         <div className="flex space-x-4 pb-4">
                           {data.products
-                            .filter((product) => product.status === "Available")
+                            ?.filter(
+                              (product) => product.status === "Available",
+                            )
+                            .filter(
+                              (product) =>
+                                selectedCategory === null ||
+                                product.category.category_id ===
+                                  selectedCategory,
+                            )
                             .map((product) => (
                               <div
                                 className="w-[250px] space-y-3"
@@ -202,11 +217,9 @@ export default function Home() {
                 </div>
                 <div className="mt-6 space-y-1">
                   <h2 className="text-2xl font-semibold tracking-tight">
-                    Made for You
+                    Lost and Found
                   </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Your personal interests.
-                  </p>
+                  <p className="text-sm text-muted-foreground"></p>
                 </div>
                 <div
                   className="my-4 h-[1px] w-full shrink-0 bg-border"
@@ -242,7 +255,7 @@ export default function Home() {
                           minWidth: "100%",
                         }}
                       >
-                        <div className="flex space-x-4 pb-4">
+                        {/* <div className="flex space-x-4 pb-4">
                           <div className="w-[150px] space-y-3">
                             <span data-state="closed">
                               <div className="overflow-hidden rounded-md">
@@ -266,168 +279,80 @@ export default function Home() {
                                 Lena Logic
                               </p>
                             </div>
-                          </div>
-                          <div className="w-[150px] space-y-3">
-                            <span data-state="closed">
-                              <div className="overflow-hidden rounded-md">
-                                <img
-                                  alt="Functional Fury"
-                                  className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  data-nimg="1"
-                                  decoding="async"
-                                  height="150"
-                                  loading="lazy"
-                                  src="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1513745405825-efaf9a49315f%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75"
-                                  srcSet="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1513745405825-efaf9a49315f%3Fw%3D300%26dpr%3D2%26q%3D80&w=256&q=75 1x, /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1513745405825-efaf9a49315f%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75 2x"
-                                  style={{
-                                    color: "transparent",
-                                  }}
-                                  width="150"
-                                />
+                          </div> */}
+                        {/* all products that have status lost or found */}
+                        {data.products
+                          .filter(
+                            (product) =>
+                              product.status === "Lost" ||
+                              product.status === "Found",
+                          )
+                          .map((product) => (
+                            <div
+                              className="w-[250px] space-y-3"
+                              key={product.prod_id}
+                            >
+                              <span data-state="closed">
+                                <div className="overflow-hidden rounded-md">
+                                  <Link to={`/product/${product.prod_id}`}>
+                                    <img
+                                      alt={
+                                        product.product_images[0].image_caption
+                                      }
+                                      className="aspect-[3/4] h-auto w-auto object-cover transition-all hover:scale-105"
+                                      height="330"
+                                      src={
+                                        product.product_images[0]?.image_url ||
+                                        "./placeholder.svg"
+                                      }
+                                      style={{
+                                        color: "transparent",
+                                      }}
+                                      width="250"
+                                    />
+                                  </Link>
+                                </div>
+                              </span>
+                              <div className="space-y-1 text-sm">
+                                <h3 className="font-medium leading-none">
+                                  {product.prod_title}
+                                  <Badge
+                                    variant="outline"
+                                    className="float-right"
+                                  >
+                                    {product.prod_condition}
+                                  </Badge>
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                  {product.description.slice(0, 25) + "..."}
+                                </p>
+                                <p className="mt-2 text-base">
+                                  ₹{product.listed_price}
+                                </p>
                               </div>
-                            </span>
-                            <div className="space-y-1 text-sm">
-                              <h3 className="font-medium leading-none">
-                                Functional Fury
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Beth Binary
-                              </p>
                             </div>
-                          </div>
-                          <div className="w-[150px] space-y-3">
-                            <span data-state="closed">
-                              <div className="overflow-hidden rounded-md">
-                                <img
-                                  alt="React Rendezvous"
-                                  className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  data-nimg="1"
-                                  decoding="async"
-                                  height="150"
-                                  loading="lazy"
-                                  src="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1614113489855-66422ad300a4%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75"
-                                  srcSet="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1614113489855-66422ad300a4%3Fw%3D300%26dpr%3D2%26q%3D80&w=256&q=75 1x, /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1614113489855-66422ad300a4%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75 2x"
-                                  style={{
-                                    color: "transparent",
-                                  }}
-                                  width="150"
-                                />
-                              </div>
-                            </span>
-                            <div className="space-y-1 text-sm">
-                              <h3 className="font-medium leading-none">
-                                React Rendezvous
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Ethan Byte
-                              </p>
-                            </div>
-                          </div>
-                          <div className="w-[150px] space-y-3">
-                            <span data-state="closed">
-                              <div className="overflow-hidden rounded-md">
-                                <img
-                                  alt="Stateful Symphony"
-                                  className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  data-nimg="1"
-                                  decoding="async"
-                                  height="150"
-                                  loading="lazy"
-                                  src="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1446185250204-f94591f7d702%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75"
-                                  srcSet="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1446185250204-f94591f7d702%3Fw%3D300%26dpr%3D2%26q%3D80&w=256&q=75 1x, /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1446185250204-f94591f7d702%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75 2x"
-                                  style={{
-                                    color: "transparent",
-                                  }}
-                                  width="150"
-                                />
-                              </div>
-                            </span>
-                            <div className="space-y-1 text-sm">
-                              <h3 className="font-medium leading-none">
-                                Stateful Symphony
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Beth Binary
-                              </p>
-                            </div>
-                          </div>
-                          <div className="w-[150px] space-y-3">
-                            <span data-state="closed">
-                              <div className="overflow-hidden rounded-md">
-                                <img
-                                  alt="Async Awakenings"
-                                  className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  data-nimg="1"
-                                  decoding="async"
-                                  height="150"
-                                  loading="lazy"
-                                  src="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1468817814611-b7edf94b5d60%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75"
-                                  srcSet="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1468817814611-b7edf94b5d60%3Fw%3D300%26dpr%3D2%26q%3D80&w=256&q=75 1x, /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1468817814611-b7edf94b5d60%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75 2x"
-                                  style={{
-                                    color: "transparent",
-                                  }}
-                                  width="150"
-                                />
-                              </div>
-                            </span>
-                            <div className="space-y-1 text-sm">
-                              <h3 className="font-medium leading-none">
-                                Async Awakenings
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Nina Netcode
-                              </p>
-                            </div>
-                          </div>
-                          <div className="w-[150px] space-y-3">
-                            <span data-state="closed">
-                              <div className="overflow-hidden rounded-md">
-                                <img
-                                  alt="The Art of Reusability"
-                                  className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  data-nimg="1"
-                                  decoding="async"
-                                  height="150"
-                                  loading="lazy"
-                                  src="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1490300472339-79e4adc6be4a%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75"
-                                  srcSet="/_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1490300472339-79e4adc6be4a%3Fw%3D300%26dpr%3D2%26q%3D80&w=256&q=75 1x, /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1490300472339-79e4adc6be4a%3Fw%3D300%26dpr%3D2%26q%3D80&w=384&q=75 2x"
-                                  style={{
-                                    color: "transparent",
-                                  }}
-                                  width="150"
-                                />
-                              </div>
-                            </span>
-                            <div className="space-y-1 text-sm">
-                              <h3 className="font-medium leading-none">
-                                The Art of Reusability
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Lena Logic
-                              </p>
-                            </div>
-                          </div>
-                        </div>
+                          ))}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div
-                aria-labelledby="radix-:r1cv:-trigger-podcasts"
-                className="mt-2 h-full flex-col border-none p-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:flex"
-                data-orientation="horizontal"
-                data-state="inactive"
-                hidden
-                id="radix-:r1cv:-content-podcasts"
-                role="tabpanel"
-                tabIndex="0"
-              />
             </div>
+            <div
+              aria-labelledby="radix-:r1cv:-trigger-podcasts"
+              className="mt-2 h-full flex-col border-none p-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:flex"
+              data-orientation="horizontal"
+              data-state="inactive"
+              hidden
+              id="radix-:r1cv:-content-podcasts"
+              role="tabpanel"
+              tabIndex="0"
+            />
           </div>
         </div>
       </div>
     </div>
+    // </div >
   );
 }
 

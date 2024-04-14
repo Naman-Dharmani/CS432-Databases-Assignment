@@ -14,10 +14,36 @@ Content-Type: application/json
 }
 
 ###
+POST {{baseURL}}/auth/google
+Content-Type: application/json
+
+{
+  "code": "4/0AeaYSHBsjZ1vWBVOcjIuDnN-ovrHZAtIEdgFieiwC7GDNgPuQWlBHXE6_TU8ZW8QzIZdsg"
+}
+
+###
 @accessToken = {{auth.response.body.access_token}}
 
 ###
 POST {{baseURL}}/logout
+
+### signup
+POST {{baseURL}}/signup
+Content-Type: application/json
+
+{
+  "name": "Naman Dharmani",
+  "email": "dharmaninaman@iitgn.ac.in",
+  "password": "password123",
+  "phone_no": "3857839457",
+  "gender": "Male",
+  "residence_location": "Los Angeles",
+  "residence_number": "456 Elm St",
+  "anonymity_level": "Visible",
+  "theme_preference": "Light",
+  "language_preference": "English",
+  "notification_preference": "All"
+}
 
 ### Category Fetch Route
 GET {{baseURL}}/categories
@@ -36,10 +62,10 @@ GET {{baseURL}}/subcategories
 GET {{baseURL}}/products
 
 ###
-GET {{baseURL}}/products?page=3
+GET {{baseURL}}/products?page=2
 
 ### View a Single Product
-GET {{baseURL}}/product/12
+GET {{baseURL}}/product/7
 
 ### Create a New Product
 POST {{baseURL}}/product
@@ -71,14 +97,14 @@ Content-Type: application/json
 }
 
 ### Delete a Product
-DELETE {{baseURL}}/product/11
+DELETE {{baseURL}}/product/1
 
 #######################
 ##### User Routes #####
 #######################
 
 ### Fetch User Details
-GET {{baseURL}}/user/1
+GET {{baseURL}}/user
 
 ### Update User Details
 PUT {{baseURL}}/user/1
@@ -90,10 +116,10 @@ Content-Type: application/json
 }
 
 ### invalid user id as seed.py only does 10 users
-GET {{baseURL}}/user/11 
+GET {{baseURL}}/user/11
 
 ### Delete User
-DELETE {{baseURL}}/user/1
+DELETE {{baseURL}}/user/6
 
 
 ##############################

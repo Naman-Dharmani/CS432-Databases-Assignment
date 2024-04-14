@@ -1,29 +1,13 @@
-import { useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Form, redirect, useLoaderData, useNavigate } from "react-router-dom";
-import { CategoryDataContext } from "@/context/category";
+import { useCategoryData } from "@/context/category-provider";
 
-import {
-  // ChevronLeft,
-  // Home,
-  // LineChart,
-  // Package,
-  // Package2,
-  // PanelLeft,
-  // PlusCircle,
-  // Search,
-  // Settings,
-  // ShoppingCart,
-  CircleX,
-  Upload,
-  // Users2,
-} from "lucide-react";
-// import { Badge } from "@/components/ui/badge";
+import { CircleX, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  // CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -46,25 +30,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-// import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-// import {
-//   Tooltip,
-//   TooltipContent,
-//   TooltipTrigger,
-// } from "@/components/ui/tooltip";
 
 async function loader({ params }) {
-  return fetch(`${import.meta.env.VITE_URL}/product/${params.prod_id}`);
+  return fetch(`${import.meta.env.VITE_URL}/product/${params.prod_id}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
+    },
+  });
 }
 
 async function action({ request, params }) {
@@ -84,6 +57,7 @@ async function action({ request, params }) {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
       },
       body: JSON.stringify(data),
     },
@@ -97,9 +71,9 @@ async function action({ request, params }) {
 }
 
 export default function EditProduct() {
-  const categoryData = useContext(CategoryDataContext);
-  const data = useLoaderData();
   const navigate = useNavigate();
+  const categoryData = useCategoryData();
+  const data = useLoaderData();
 
   const [currentCategory, setCurrentCategory] = useState(
     data?.category.category_name,
@@ -113,7 +87,7 @@ export default function EditProduct() {
 
   const currentCategoryId = useMemo(
     () =>
-      categoryData.categories.filter(
+      categoryData?.categories?.filter(
         (category) => category.category_name === currentCategory,
       )[0]?.category_id,
     [currentCategory, categoryData.categories],
@@ -121,7 +95,7 @@ export default function EditProduct() {
 
   const currentSubcategoryId = useMemo(
     () =>
-      categoryData.subcategories.filter(
+      categoryData?.subcategories?.filter(
         (subcategory) => subcategory.subcategory_name === currentSubcategory,
       )[0]?.subcategory_id,
     [currentSubcategory, categoryData.subcategories],
@@ -246,7 +220,7 @@ export default function EditProduct() {
                               <SelectValue placeholder="Select category" />
                             </SelectTrigger>
                             <SelectContent>
-                              {categoryData.categories.map((category) => (
+                              {categoryData?.categories?.map((category) => (
                                 <SelectItem
                                   value={category.category_name}
                                   key={category.category_id}
@@ -270,8 +244,8 @@ export default function EditProduct() {
                               <SelectValue placeholder="Select subcategory" />
                             </SelectTrigger>
                             <SelectContent>
-                              {categoryData.subcategories
-                                .filter(
+                              {categoryData?.subcategories
+                                ?.filter(
                                   (subcategory) =>
                                     subcategory.category_id ===
                                     currentCategoryId,
@@ -460,6 +434,8 @@ export default function EditProduct() {
                               </SelectItem>
                               <SelectItem value="Archived">Archived</SelectItem>
                               <SelectItem value="Sold">Sold</SelectItem>
+                              <SelectItem value="Lost">Lost</SelectItem>
+                              <SelectItem value="Found">Found</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -584,5 +560,5 @@ export default function EditProduct() {
   );
 }
 
-EditProduct.action = action;
 EditProduct.loader = loader;
+EditProduct.action = action;

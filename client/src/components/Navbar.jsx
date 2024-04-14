@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate, useSubmit } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import {
   CircleUser,
@@ -27,7 +27,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/mode-toggle";
 
 export default function Navbar({ isLoggedIn }) {
-  const submit = useSubmit();
   const navigate = useNavigate();
 
   return (
@@ -45,12 +44,6 @@ export default function Navbar({ isLoggedIn }) {
         {isLoggedIn ? (
           <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
             <NavLink
-              to="/dashboard"
-              className={({ isActive }) => (isActive ? "active" : "inactive")}
-            >
-              Dashboard
-            </NavLink>
-            <NavLink
               to="/transactions"
               className={({ isActive }) => (isActive ? "active" : "inactive")}
             >
@@ -61,12 +54,6 @@ export default function Navbar({ isLoggedIn }) {
               className={({ isActive }) => (isActive ? "active" : "inactive")}
             >
               My Products
-            </NavLink>
-            <NavLink
-              to="/customers"
-              className={({ isActive }) => (isActive ? "active" : "inactive")}
-            >
-              Customers
             </NavLink>
             <NavLink
               to="/analytics"
@@ -113,12 +100,6 @@ export default function Navbar({ isLoggedIn }) {
                 <span className="sr-only">Acme Inc</span>
               </NavLink>
               <NavLink
-                to="/dashboard"
-                className={({ isActive }) => (isActive ? "active" : "inactive")}
-              >
-                Dashboard
-              </NavLink>
-              <NavLink
                 to="/transactions"
                 className={({ isActive }) => (isActive ? "active" : "inactive")}
               >
@@ -129,12 +110,6 @@ export default function Navbar({ isLoggedIn }) {
                 className={({ isActive }) => (isActive ? "active" : "inactive")}
               >
                 My Products
-              </NavLink>
-              <NavLink
-                to="/customers"
-                className={({ isActive }) => (isActive ? "active" : "inactive")}
-              >
-                Customers
               </NavLink>
               <NavLink
                 to="/analytics"
@@ -194,11 +169,7 @@ export default function Navbar({ isLoggedIn }) {
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() =>
-                    submit(null, { method: "post", action: "/logout" })
-                  }
-                >
+                <DropdownMenuItem onClick={() => navigate("/logout")}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                   <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
