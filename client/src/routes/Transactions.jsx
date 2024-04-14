@@ -1,4 +1,4 @@
-import { Form, useLoaderData, useNavigate } from "react-router-dom";
+import { Form, useLoaderData } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 async function loader() {
-  return fetch(`${import.meta.env.VITE_URL}/user/1/transactions`, {
+  return fetch(`${import.meta.env.VITE_URL}/user/transactions`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
     },

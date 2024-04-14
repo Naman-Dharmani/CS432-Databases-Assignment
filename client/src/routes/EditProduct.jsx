@@ -87,7 +87,7 @@ export default function EditProduct() {
 
   const currentCategoryId = useMemo(
     () =>
-      categoryData.categories.filter(
+      categoryData?.categories?.filter(
         (category) => category.category_name === currentCategory,
       )[0]?.category_id,
     [currentCategory, categoryData.categories],
@@ -95,7 +95,7 @@ export default function EditProduct() {
 
   const currentSubcategoryId = useMemo(
     () =>
-      categoryData.subcategories.filter(
+      categoryData?.subcategories?.filter(
         (subcategory) => subcategory.subcategory_name === currentSubcategory,
       )[0]?.subcategory_id,
     [currentSubcategory, categoryData.subcategories],
@@ -220,7 +220,7 @@ export default function EditProduct() {
                               <SelectValue placeholder="Select category" />
                             </SelectTrigger>
                             <SelectContent>
-                              {categoryData.categories.map((category) => (
+                              {categoryData?.categories?.map((category) => (
                                 <SelectItem
                                   value={category.category_name}
                                   key={category.category_id}
@@ -244,8 +244,8 @@ export default function EditProduct() {
                               <SelectValue placeholder="Select subcategory" />
                             </SelectTrigger>
                             <SelectContent>
-                              {categoryData.subcategories
-                                .filter(
+                              {categoryData?.subcategories
+                                ?.filter(
                                   (subcategory) =>
                                     subcategory.category_id ===
                                     currentCategoryId,

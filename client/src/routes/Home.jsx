@@ -112,7 +112,7 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <h2 className="text-2xl font-semibold tracking-tight">
-                      Listen Now
+                      Trending Now
                     </h2>
                     <p className="text-sm text-muted-foreground">
                       Top picks for you.
@@ -219,9 +219,7 @@ export default function Home() {
                   <h2 className="text-2xl font-semibold tracking-tight">
                     Lost and Found
                   </h2>
-                  <p className="text-sm text-muted-foreground">
-
-                  </p>
+                  <p className="text-sm text-muted-foreground"></p>
                 </div>
                 <div
                   className="my-4 h-[1px] w-full shrink-0 bg-border"
@@ -284,7 +282,11 @@ export default function Home() {
                           </div> */}
                         {/* all products that have status lost or found */}
                         {data.products
-                          .filter((product) => product.status === "Lost" || product.status === "Found")
+                          .filter(
+                            (product) =>
+                              product.status === "Lost" ||
+                              product.status === "Found",
+                          )
                           .map((product) => (
                             <div
                               className="w-[250px] space-y-3"
@@ -295,14 +297,13 @@ export default function Home() {
                                   <Link to={`/product/${product.prod_id}`}>
                                     <img
                                       alt={
-                                        product.product_images[0]
-                                          .image_caption
+                                        product.product_images[0].image_caption
                                       }
                                       className="aspect-[3/4] h-auto w-auto object-cover transition-all hover:scale-105"
                                       height="330"
                                       src={
-                                        product.product_images[0]
-                                          ?.image_url || "./placeholder.svg"
+                                        product.product_images[0]?.image_url ||
+                                        "./placeholder.svg"
                                       }
                                       style={{
                                         color: "transparent",

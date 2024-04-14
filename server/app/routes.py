@@ -32,8 +32,8 @@ items_per_page = 5
 
 
 @app.route('/admin_user')
+@jwt_required()
 def admin_user():
-
     stmt = text("SELECT * FROM admin_view_user")
     users = []
     with db.engine.connect() as conn:
@@ -107,17 +107,17 @@ def home():
 # TODO: DELETE method - need to enable cascading for delete in models.py
 
 
-@app.route("/logout")
-@login_required
-def logout():
-    logout_user()
-    flash("You have logged out")
-    return redirect(url_for("home"))
-
-
 @app.route("/login")
 def login():
     return redirect(url_for("google.login"))
+
+
+@app.route("/logout")
+@jwt_required()
+def logout():
+    logout_user()
+    flash("You have been logged out")
+    return redirect(url_for("home"))
 
 
 @app.route("/auth/google", methods=['POST'])
@@ -233,9 +233,15 @@ def get_products():
 
 # Route to add a new product
 @app.route("/product", methods=["POST"])
-# @login_required
+@jwt_required()
 def create_product():
     try:
+        current_user_email = get_jwt_identity()
+        current_user = User.query.filter_by(email=current_user_email).first()
+
+        if not current_user:
+            return make_response(jsonify({"error": "User does not exist"}), 404)
+
         data = request.json
         db.session.begin_nested()
 
@@ -272,15 +278,6 @@ def create_product():
 
         product_id = product.prod_id
 
-        # if len(hashtags) > 0:
-        #    for tag in hashtags:
-        #        tag = tag.strip()
-        #        hashtag = Hashtag(tag_label=tag,
-        #                          product_id=product_id
-        #                          )
-        #        db.session.add(hashtag)
-        #    db.session.commit()
-
         if "hashtags" in data:
             # Multiple hashtags can be added
             for tag in data["hashtags"].split(","):
@@ -289,13 +286,11 @@ def create_product():
                 db.session.add(hashtag)
             db.session.commit()
 
-        # TODO: uncomment this once login is required
-        # user_id = current_user.get_id()
-        # listing = Listing(user_id=user_id,
-        #                   prod_id=product_id
-        #                   )
-        # db.session.add(listing)
-        # db.session.commit()
+        listing = Listing(user_id=current_user.user_id,
+                          prod_id=product_id
+                          )
+        db.session.add(listing)
+        db.session.commit()
 
         if "image_url" in data:
             if "image_caption" in data:
@@ -312,52 +307,19 @@ def create_product():
             db.session.add(product_image)
             db.session.commit()
 
-        # update listings
-        user_id = 2
-        listing = Listing(user_id=user_id, prod_id=product_id)
-        db.session.add(listing)
-        db.session.commit()
-
         return make_response(jsonify({"message": "Product added successfully"}), 201)
 
     except Exception as e:
         db.session.rollback()
         return make_response(jsonify({'error': str(e)}), 500)
 
+
 # Route to get/update/delete a product by id
-
-
 @app.route("/product/<int:id>", methods=["GET", "PUT", "DELETE"])
+@jwt_required()
 def product(id):
     if request.method == "GET":
         try:
-            # required_prod = Product.query.filter_by(
-            #         prod_id=id).first().to_dict()
-
-            # # If the product is not found, return a 404 error
-            # if required_prod == None:
-            #     return make_response({"message": 'Product not found'}, 404)
-
-            # # If product is found, get the other details
-            # subcategory_id = required_prod.get('subcategory_id')
-            # subcategory = Subcategory.query.filter_by(
-            #     subcategory_id=subcategory_id).first().to_dict()
-
-            # category_id = subcategory.get('category_id')
-            # category = Category.query.filter_by(category_id=category_id).first().to_dict()
-
-            # hashtags = [hashtag.to_dict()['tag_label']
-            #             for hashtag in Hashtag.query.filter_by(product_id=id).all()]
-
-            # # hashtags = Hashtag.query.filter_by(product_id=id).all().to_dict()
-            # product_image = Product_Image.query.filter_by(
-            #     prod_id=id).first().to_dict()
-
-            # hashtags = dict(tag_label=hashtags)
-
-            # required_data = {**required_prod, **category,
-            #                  **subcategory, **hashtags, **product_image}
-            # print(required_data)
             required_data = get_product(id)
             return make_response(jsonify(required_data), 200)
         except Exception as e:
@@ -378,10 +340,6 @@ def product(id):
                 for key, value in data.items()
                 if key in Product.__table__.columns
             }
-            # category_data = {key: value for key, value in data.items(
-            # ) if key in Category.__table__.columns}
-            # subcategory_data = {key: value for key, value in data.items(
-            # ) if key in Subcategory.__table__.columns}
             hashtag_data = {
                 key: value
                 for key, value in data.items()
@@ -401,19 +359,6 @@ def product(id):
             utc = timezone(timedelta(hours=0, minutes=0))
             product.date_modified = datetime.now(
                 utc).strftime("%Y-%m-%d %H:%M:%S")
-
-            # # Updating the category attributes
-            # category = Category.query.filter_by(prod_id=id).first()
-            # if category:
-            #     for key, value in category_data.items():
-            #         setattr(category, key, value)
-
-            # # Updating the subcategory attributes
-            # subcategory = Subcategory.query.filter_by(
-            #     category_id=category.category_id).first()
-            # if subcategory:
-            #     for key, value in subcategory_data.items():
-            #         setattr(subcategory, key, value)
 
             # Updating the hashtags
             Hashtag.query.filter_by(product_id=id).delete()
@@ -439,7 +384,6 @@ def product(id):
 
     elif request.method == "DELETE":
         try:
-
             db.session.begin_nested()
             product = Product.query.get(id)
             if product is None:
@@ -454,7 +398,6 @@ def product(id):
 
 
 # <---------------------------------------------User Routes----------------------------------------------------->
-
 @app.route("/signup", methods=["POST"])
 def signup():
     try:
@@ -497,26 +440,14 @@ def get_user_details():
         return make_response(jsonify({"error": str(e)}), 500)
 
 
-@app.route("/user/<int:u_id>", methods=["GET"])
-@swag_from("docs/get_user.yml")
-def get_user(u_id):
+@app.route("/user", methods=["PUT"])
+@jwt_required()
+def update_user():
     try:
-        user = User.query.get(u_id)
-        if user is None:
-            return make_response(jsonify({"message": "User not found"}), 404)
-        res = user.to_dict()
-        del res["password"]
-        return make_response(jsonify(res), 200)
-    except Exception as e:
-        return make_response(jsonify({"error": str(e)}), 500)
-
-
-@app.route("/user/<int:u_id>", methods=["PUT"])
-def update_user(u_id):
-    try:
+        current_user_email = get_jwt_identity()
 
         db.session.begin_nested()
-        user = User.query.get(u_id)
+        user = User.query.filter_by(email=current_user_email).first()
         if user is None:
             return make_response(jsonify({"message": "User not found"}), 404)
         data = request.get_json()
@@ -531,12 +462,14 @@ def update_user(u_id):
         return make_response(jsonify({"error": str(e)}), 500)
 
 
-@app.route("/user/<int:u_id>", methods=["DELETE"])
-def delete_user(u_id):
+@app.route("/user", methods=["DELETE"])
+@jwt_required()
+def delete_user():
     try:
+        current_user_email = get_jwt_identity()
 
         db.session.begin_nested()
-        user = User.query.get(u_id)
+        user = User.query.filter_by(email=current_user_email).first()
         if user is None:
             return make_response(jsonify({"message": "User not found"}), 404)
         db.session.delete(user)
@@ -547,17 +480,23 @@ def delete_user(u_id):
         return make_response(jsonify({"error": str(e)}), 500)
 
 
-@app.route("/user/<int:u_id>/listings", methods=["GET"])
-def get_user_listings(u_id):
-    try:
-        listings = Listing.query.filter_by(user_id=u_id).all()
-        return make_response(jsonify([listing.__dict__ for listing in listings]), 200)
-    except Exception as e:
-        return make_response(jsonify({"error": str(e)}), 500)
+# @app.route("/user/listings", methods=["GET"])
+# @jwt_required()
+# def get_user_listings():
+#     try:
+#         current_user_email = get_jwt_identity()
+#         current_user = User.query.filter_by(email=current_user_email).first()
+
+#         listings = Listing.query.filter_by(
+#             user_id=current_user.user_id).all()
+#         return make_response(jsonify([listing.__dict__ for listing in listings]), 200)
+#     except Exception as e:
+#         return make_response(jsonify({"error": str(e)}), 500)
 
 
 # <---------------------------------------------App Feedback----------------------------------------------------->
 @app.route("/app/feedback", methods=["POST"])
+@jwt_required()
 def app_feedback():
     try:
         db.session.begin_nested()
@@ -578,24 +517,31 @@ def app_feedback():
 
 
 # <---------------------------------------------Transaction Routes----------------------------------------------------->
-
-
-@app.route('/user/<u_id>/transactions', methods=['GET'])
-def all_transactions_(u_id):
-
+@app.route('/user/transactions', methods=['GET'])
+@jwt_required()
+def all_transactions_():
     try:
-        transactions = Transaction.query.all()
+        cucurrent_user_email = get_jwt_identity()
+        current_user = User.query.filter_by(email=cucurrent_user_email).first()
+
+        transactions = Transaction.query.filter_by(
+            seller_id=current_user.user_id).all()
         return make_response(jsonify([transaction.to_dict() for transaction in transactions]), 200)
 
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
 
 
-@app.route("/user/<u_id>/transactions", methods=["GET"])
-def all_transactions(u_id):
+@app.route("/user/transactions", methods=["GET"])
+@jwt_required()
+def all_transactions():
     try:
+        cucurrent_user_email = get_jwt_identity()
+        current_user = User.query.filter_by(email=cucurrent_user_email).first()
+
         transactions = Transaction.query.filter(
-            or_(Transaction.buyer_id == u_id, Transaction.seller_id == u_id)
+            or_(Transaction.buyer_id == current_user.user_id,
+                Transaction.seller_id == current_user.user_id)
         ).all()
         # return make_response(
         #     jsonify([transaction.to_dict() for transaction in transactions]), 200
@@ -631,6 +577,7 @@ def all_transactions(u_id):
 
 
 @app.route("/user/transactions/<t_id>", methods=["GET", "PUT"])
+@jwt_required()
 def get_transaction_details(t_id):
     # Add check for user accessibility
     try:
@@ -638,9 +585,7 @@ def get_transaction_details(t_id):
             transaction = Transaction.query.filter_by(
                 transaction_id=t_id).first()
             return make_response(transaction.to_dict(), 200)
-
         else:
-
             db.session.begin_nested()
             transaction = Transaction.query.get(t_id)
             if transaction is None:
@@ -657,14 +602,19 @@ def get_transaction_details(t_id):
 
 
 @app.route("/user/new_transaction", methods=["POST"])
+@jwt_required()
 def new_transaction():
     try:
         if request.method == 'POST':
+            cucurrent_user_email = get_jwt_identity()
+            current_user = User.query.filter_by(
+                email=cucurrent_user_email).first()
 
             db.session.begin_nested()
             transaction_details = request.get_json()
             buyer_id = transaction_details["buyer_id"]
-            seller_id = transaction_details["seller_id"]
+            # seller_id = transaction_details["seller_id"]
+            seller_id = current_user.user_id
             prod_id = transaction_details["prod_id"]
             # transaction_date = transaction_details['transaction_date']
             transaction_date = datetime.utcnow()
@@ -691,6 +641,7 @@ def new_transaction():
 
 
 @app.route("/review/<r_id>", methods=["GET", "POST", "PUT"])
+@jwt_required()
 def review(r_id):
     try:
         if request.method == "GET":
@@ -733,9 +684,9 @@ def review(r_id):
 
 
 @app.route("/user/review/<t_id>", methods=["POST", "PUT"])
+@jwt_required()
 def review_trans(t_id):
     try:
-
         if request.method == "POST":
             db.session.begin_nested()
             review_details = request.get_json()
@@ -760,9 +711,7 @@ def review_trans(t_id):
             return make_response(
                 jsonify({"message": "Review submitted successfully!"}), 201
             )
-
         else:
-
             db.session.begin_nested()
             transaction = Transaction.query.get(t_id)
             review = Review.query.get(transaction.review_id)
@@ -780,15 +729,17 @@ def review_trans(t_id):
 
 
 # <---------------------------------------------Chat Routes----------------------------------------------------->
-
-
-@app.route("/user/senders/<u_id>", methods=["GET"])
-def all_senders(u_id):
+@app.route("/user/senders", methods=["GET"])
+@jwt_required()
+def all_senders():
     try:
+        cucurrent_user_email = get_jwt_identity()
+        current_user = User.query.filter_by(email=cucurrent_user_email).first()
+
         entries = (
             ChatSystem.query.join(
                 Listing, Listing.prod_id == ChatSystem.prod_id)
-            .filter(Listing.user_id == u_id)
+            .filter(Listing.user_id == current_user.user_id)
             .all()
         )
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
@@ -797,13 +748,17 @@ def all_senders(u_id):
         return make_response(jsonify({"error": str(e)}), 500)
 
 
-@app.route("/user/senders/<u_id>/<p_id>", methods=["GET"])
-def prod_senders(u_id, p_id):
+@app.route("/user/senders/<p_id>", methods=["GET"])
+@jwt_required()
+def prod_senders(p_id):
     try:
+        cucurrent_user_email = get_jwt_identity()
+        current_user = User.query.filter_by(email=cucurrent_user_email).first()
+
         entries = (
             ChatSystem.query.join(
                 Listing, Listing.prod_id == ChatSystem.prod_id)
-            .filter(and_(Listing.user_id == u_id, Listing.prod_id == p_id))
+            .filter(and_(Listing.user_id == current_user.user_id, Listing.prod_id == p_id))
             .all()
         )
         return make_response(jsonify([entry.to_dict() for entry in entries]), 200)
@@ -813,6 +768,7 @@ def prod_senders(u_id, p_id):
 
 
 @app.route("/user/senders/product/<p_id>/<s_id>", methods=["GET"])
+@jwt_required()
 def messages_see(p_id, s_id):
     try:
         entries = (
@@ -834,6 +790,7 @@ def messages_see(p_id, s_id):
 
 
 @app.route("/user/send/<s_id>/<r_id>/<p_id>", methods=["POST"])
+@jwt_required()
 def messages_send(p_id, s_id, r_id):
     try:
         if request.method == "POST":
@@ -865,8 +822,6 @@ def messages_send(p_id, s_id, r_id):
 
 
 # <---------------------------------------------Category Routes----------------------------------------------------->
-
-
 @app.route("/categories", methods=["GET"])
 def get_categories():
     try:
