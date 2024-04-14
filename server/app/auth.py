@@ -14,6 +14,7 @@ from flask_dance.consumer.storage.sqla import SQLAlchemyStorage
 from sqlalchemy.orm.exc import NoResultFound
 from .models import db, User, OAuth
 
+
 google_bp = make_google_blueprint(
     scope=[
         "https://www.googleapis.com/auth/userinfo.email",

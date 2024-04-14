@@ -1,4 +1,4 @@
 mysql_host: "localhost"
-mysql_user: "me"
-mysql_password: "me"
+mysql_user: "exp"
+mysql_password: "password"
 mysql_db: "buy_sell"

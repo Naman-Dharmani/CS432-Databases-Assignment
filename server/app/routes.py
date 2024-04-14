@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 from . import app
 from .models import db
+# from . import AdminView
 from .models import (
     User,
     Product,
@@ -19,13 +20,47 @@ from .models import (
     Transaction,
     Listing,
 )
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, MetaData, select
 from sqlalchemy.orm import joinedload
 from flask_dance.contrib.google import google
 from flask_login import login_required, logout_user
+from sqlalchemy.sql import text 
 
 pagination_per_page = 5
 
+@app.route('/admin_user')
+def admin_user():
+
+    stmt = text("SELECT * FROM admin_view_user")
+    users = []
+    with db.engine.connect() as conn:
+        result = conn.execute(stmt)
+        for row in result:
+            print(row)
+            row_dict = {}
+            row_dict['id'] = row[0]
+            row_dict['name'] = row[1]
+            row_dict['email'] = row[2]
+            users.append(row_dict)
+
+    return make_response(jsonify(users), 200)
+
+@app.route('/admin_prod')
+def admin_prod():
+
+    stmt = text("SELECT * FROM admin_view_prod")
+    users = []
+    with db.engine.connect() as conn:
+        result = conn.execute(stmt)
+        for row in result:
+            print(row)
+            row_dict = {}
+            row_dict['name'] = row[0]
+            row_dict['email'] = row[1]
+            row_dict['product'] = row[2]
+            users.append(row_dict)
+
+    return make_response(jsonify(users), 200)
 
 @app.route("/")
 def home():
@@ -152,6 +187,7 @@ def get_products():
 def create_product():
     try:
         data = request.json
+        db.session.begin_nested()
 
         # Sanity check for the data
         keys = [
@@ -235,8 +271,8 @@ def create_product():
         return make_response(jsonify({"message": "Product added successfully"}), 201)
 
     except Exception as e:
-        return make_response(jsonify({"error": str(e)}), 500)
-
+        db.session.rollback()
+        return make_response(jsonify({'error': str(e)}), 500)
 
 # Route to get/update/delete a product by id
 
@@ -279,6 +315,8 @@ def product(id):
 
     elif request.method == "PUT":
         try:
+
+            db.session.begin_nested()
             product = Product.query.get(id)
             if product is None:
                 return make_response(jsonify({"message": "Product not found"}), 404)
@@ -345,17 +383,22 @@ def product(id):
             return make_response(jsonify({"message": "Product Updated"}), 200)
 
         except Exception as e:
+            db.session.rollback()
             return make_response(jsonify({"error": str(e)}), 500)
 
     elif request.method == "DELETE":
         try:
+
+            db.session.begin_nested()
             product = Product.query.get(id)
             if product is None:
                 return make_response(jsonify({"message": "Product not found"}), 404)
             db.session.delete(product)
             db.session.commit()
             return make_response(jsonify({"message": "Product deleted"}), 200)
+        
         except Exception as e:
+            db.session.rollback()
             return make_response(jsonify({"error": str(e)}), 500)
 
 
@@ -380,6 +423,8 @@ def get_user(u_id):
 @app.route("/user/<int:u_id>", methods=["PUT"])
 def update_user(u_id):
     try:
+
+        db.session.begin_nested()
         user = User.query.get(u_id)
         if user is None:
             return make_response(jsonify({"message": "User not found"}), 404)
@@ -391,12 +436,15 @@ def update_user(u_id):
         del res["password"]
         return make_response(jsonify(res), 200)
     except Exception as e:
+        db.session.rollback()
         return make_response(jsonify({"error": str(e)}), 500)
 
 
 @app.route("/user/<int:u_id>", methods=["DELETE"])
 def delete_user(u_id):
     try:
+
+        db.session.begin_nested()
         user = User.query.get(u_id)
         if user is None:
             return make_response(jsonify({"message": "User not found"}), 404)
@@ -404,6 +452,7 @@ def delete_user(u_id):
         db.session.commit()
         return make_response(jsonify({"message": "User deleted"}), 200)
     except Exception as e:
+        db.session.rollback()
         return make_response(jsonify({"error": str(e)}), 500)
 
 
@@ -420,6 +469,7 @@ def get_user_listings(u_id):
 @app.route("/app/feedback", methods=["POST"])
 def app_feedback():
     try:
+        db.session.begin_nested()
         # user_id = current_user.get_id()
         user_id = 2
         data = request.get_json()
@@ -432,11 +482,22 @@ def app_feedback():
         db.session.commit()
         return make_response(jsonify({"message": "Feedback submitted"}), 201)
     except Exception as e:
+        db.session.rollback()
         return make_response(jsonify({"error": str(e)}), 500)
 
 
 # <---------------------------------------------Transaction Routes----------------------------------------------------->
 
+
+@app.route('/user/<u_id>/transactions', methods=['GET'])
+def all_transactions_(u_id):
+
+    try:
+        transactions = Transaction.query.all()
+        return make_response(jsonify([transaction.to_dict() for transaction in transactions]), 200)
+
+    except Exception as e:
+        return make_response(jsonify({"error": str(e)}), 500)
 
 @app.route("/user/<u_id>/transactions", methods=["GET"])
 def all_transactions(u_id):
@@ -481,6 +542,8 @@ def get_transaction_details(t_id):
             return make_response(transaction.to_dict(), 200)
 
         else:
+
+            db.session.begin_nested()
             transaction = Transaction.query.get(t_id)
             if transaction is None:
                 return make_response(jsonify({"message": "Transaction not found"}), 404)
@@ -491,13 +554,16 @@ def get_transaction_details(t_id):
             return make_response(jsonify(transaction.to_dict()), 200)
 
     except Exception as e:
+        db.session.rollback()
         return make_response(jsonify({"error": str(e)}), 500)
 
 
 @app.route("/user/new_transaction", methods=["POST"])
 def new_transaction():
     try:
-        if request.method == "POST":
+        if request.method == 'POST':
+            
+            db.session.begin_nested()
             transaction_details = request.get_json()
             buyer_id = transaction_details["buyer_id"]
             seller_id = transaction_details["seller_id"]
@@ -563,13 +629,18 @@ def review(r_id):
             return make_response(jsonify(review.to_dict()), 200)
 
     except Exception as e:
+
+        db.session.rollback()
         return make_response(jsonify({"error": str(e)}), 500)
 
 
 @app.route("/user/review/<t_id>", methods=["POST", "PUT"])
 def review_trans(t_id):
     try:
+
+        
         if request.method == "POST":
+            db.session.begin_nested()
             review_details = request.get_json()
             review_text = review_details["text"]
             review_rating = review_details["rating"]
@@ -594,6 +665,8 @@ def review_trans(t_id):
             )
 
         else:
+            
+            db.session.begin_nested()
             transaction = Transaction.query.get(t_id)
             review = Review.query.get(transaction.review_id)
             if review is None:
@@ -605,6 +678,7 @@ def review_trans(t_id):
             return make_response(jsonify(review.to_dict()), 200)
 
     except Exception as e:
+        db.session.rollback()
         return make_response(jsonify({"error": str(e)}), 500)
 
 
@@ -663,6 +737,7 @@ def messages_see(p_id, s_id):
 def messages_send(p_id, s_id, r_id):
     try:
         if request.method == "POST":
+            db.session.begin_nested()
             chat_details = request.get_json()
             message = chat_details["text"]
             chat_time = datetime.now()
@@ -683,6 +758,8 @@ def messages_send(p_id, s_id, r_id):
         return make_response(jsonify({"message": "Message sent successfully!"}), 201)
 
     except Exception as e:
+        
+        db.session.rollback()
         return make_response(jsonify({"error": str(e)}), 500)
 
 

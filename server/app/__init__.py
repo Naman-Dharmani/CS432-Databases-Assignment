@@ -13,9 +13,17 @@ from .models import db, login_manager
 # from . import routes
 # from . import seed
 from . import seed2
+from sqlalchemy import MetaData, Table
+from sqlalchemy.sql import text
 
+import sqlalchemy as sa
+from sqlalchemy.ext import compiler
+from sqlalchemy.schema import DDLElement
+from sqlalchemy.sql import table
 
 app = Flask(__name__)
+
+
 CORS(app, resource={r"/*": {"origins": "*"}})
 
 
@@ -28,6 +36,8 @@ mysql_db = conf["mysql_db"]
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}/{mysql_db}"
 )
+
+app.config["SQLALCHEMY_POOL_SIZE"] = 100
 app.config["Access-Control-Allow-Origin"] = "*"
 app.config["Access-Control-Allow-Headers"] = "Content-Type"
 
@@ -57,6 +67,30 @@ print(GOOGLE_OAUTH_CLIENT_SECRET)
 # app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
 # jwt = JWTManager(app)
 
+
+# Define a custom DDLElement for CREATE VIEW
+class CreateView(DDLElement):
+    def __init__(self, name, query):
+        self.name = name
+        self.query = query
+
+# Compiler for CREATE VIEW
+@compiler.compiles(CreateView)
+def _create_view(element, compiler, **kw):
+    return f"CREATE VIEW {element.name} AS {element.query}"
+
+
+# Define a custom DDLElement for CREATE VIEW
+class CreateView(DDLElement):
+    def __init__(self, name, query):
+        self.name = name
+        self.query = query
+
+# Compiler for CREATE VIEW
+@compiler.compiles(CreateView)
+def _create_view(element, compiler, **kw):
+    return f"CREATE VIEW {element.name} AS {element.query}"
+
 with app.app_context():
     from . import routes
 
@@ -66,3 +100,29 @@ with app.app_context():
     # seed the database (development only)
     # seed.seed_db()
     seed2.seed_db2()
+
+    metadata = MetaData()
+    metadata.bind = db.engine 
+
+    view_query1 = """
+    SELECT user_id, name, email
+    FROM User;
+    """
+
+    view_query2 = """
+    SELECT User.name, User.email, Product.prod_title
+    FROM User JOIN listings JOIN Product;
+    """
+
+    # # Create the view in the database
+    with db.engine.connect() as conn:
+
+        conn.execute(text("DROP VIEW IF EXISTS admin_view_user"))
+        conn.execute(CreateView('admin_view_user', view_query1))
+        conn.execute(text(f"GRANT SELECT ON admin_view_user TO '{mysql_user}'@'{mysql_host}';"))
+
+        conn.execute(text("DROP VIEW IF EXISTS admin_view_prod"))
+        conn.execute(CreateView('admin_view_prod', view_query2))
+        conn.execute(text(f"GRANT SELECT ON admin_view_prod TO '{mysql_user}'@'{mysql_host}';"))
+
+    metadata.reflect(bind = db.engine, views = True)

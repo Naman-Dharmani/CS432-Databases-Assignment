@@ -13,3 +13,4 @@ flask_testing
 flask-dance[sqla]
 flask_login
 python-dotenv
+requests
