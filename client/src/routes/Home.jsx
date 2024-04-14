@@ -205,10 +205,10 @@ export default function Home() {
                 </div>
                 <div className="mt-6 space-y-1">
                   <h2 className="text-2xl font-semibold tracking-tight">
-                    Made for You
+                    Lost and Found
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Your personal interests.
+
                   </p>
                 </div>
                 <div
@@ -245,7 +245,7 @@ export default function Home() {
                           minWidth: "100%",
                         }}
                       >
-                        <div className="flex space-x-4 pb-4">
+                        {/* <div className="flex space-x-4 pb-4">
                           <div className="w-[150px] space-y-3">
                             <span data-state="closed">
                               <div className="overflow-hidden rounded-md">
@@ -269,157 +269,77 @@ export default function Home() {
                                 Lena Logic
                               </p>
                             </div>
-                          </div>
-                          <div className="w-[150px] space-y-3">
-                            <span data-state="closed">
-                              <div className="overflow-hidden rounded-md">
-                                <img
-                                  alt="Functional Fury"
-                                  className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  height="150"
-                                  src="/placeholder.svg"
-                                  style={{
-                                    color: "transparent",
-                                  }}
-                                  width="150"
-                                />
+                          </div> */}
+                        {/* all products that have status lost or found */}
+                        {data.products
+                          .filter((product) => product.status === "Lost" || product.status === "Found")
+                          .map((product) => (
+                            <div
+                              className="w-[250px] space-y-3"
+                              key={product.prod_id}
+                            >
+                              <span data-state="closed">
+                                <div className="overflow-hidden rounded-md">
+                                  <Link to={`/product/${product.prod_id}`}>
+                                    <img
+                                      alt={
+                                        product.product_images[0]
+                                          .image_caption
+                                      }
+                                      className="aspect-[3/4] h-auto w-auto object-cover transition-all hover:scale-105"
+                                      height="330"
+                                      src={
+                                        product.product_images[0]
+                                          ?.image_url || "./placeholder.svg"
+                                      }
+                                      style={{
+                                        color: "transparent",
+                                      }}
+                                      width="250"
+                                    />
+                                  </Link>
+                                </div>
+                              </span>
+                              <div className="space-y-1 text-sm">
+                                <h3 className="font-medium leading-none">
+                                  {product.prod_title}
+                                  <Badge
+                                    variant="outline"
+                                    className="float-right"
+                                  >
+                                    {product.prod_condition}
+                                  </Badge>
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                  {product.description.slice(0, 25) + "..."}
+                                </p>
+                                <p className="mt-2 text-base">
+                                  ₹{product.listed_price}
+                                </p>
                               </div>
-                            </span>
-                            <div className="space-y-1 text-sm">
-                              <h3 className="font-medium leading-none">
-                                Functional Fury
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Beth Binary
-                              </p>
                             </div>
-                          </div>
-                          <div className="w-[150px] space-y-3">
-                            <span data-state="closed">
-                              <div className="overflow-hidden rounded-md">
-                                <img
-                                  alt="React Rendezvous"
-                                  className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  data-nimg="1"
-                                  decoding="async"
-                                  height="150"
-                                  loading="lazy"
-                                  src="/placeholder.svg"
-                                  style={{
-                                    color: "transparent",
-                                  }}
-                                  width="150"
-                                />
-                              </div>
-                            </span>
-                            <div className="space-y-1 text-sm">
-                              <h3 className="font-medium leading-none">
-                                React Rendezvous
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Ethan Byte
-                              </p>
-                            </div>
-                          </div>
-                          <div className="w-[150px] space-y-3">
-                            <span data-state="closed">
-                              <div className="overflow-hidden rounded-md">
-                                <img
-                                  alt="Stateful Symphony"
-                                  className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  data-nimg="1"
-                                  decoding="async"
-                                  height="150"
-                                  loading="lazy"
-                                  src="/placeholder.svg"
-                                  style={{
-                                    color: "transparent",
-                                  }}
-                                  width="150"
-                                />
-                              </div>
-                            </span>
-                            <div className="space-y-1 text-sm">
-                              <h3 className="font-medium leading-none">
-                                Stateful Symphony
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Beth Binary
-                              </p>
-                            </div>
-                          </div>
-                          <div className="w-[150px] space-y-3">
-                            <span data-state="closed">
-                              <div className="overflow-hidden rounded-md">
-                                <img
-                                  alt="Async Awakenings"
-                                  className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  data-nimg="1"
-                                  decoding="async"
-                                  height="150"
-                                  loading="lazy"
-                                  src="/placeholder.svg"
-                                  style={{
-                                    color: "transparent",
-                                  }}
-                                  width="150"
-                                />
-                              </div>
-                            </span>
-                            <div className="space-y-1 text-sm">
-                              <h3 className="font-medium leading-none">
-                                Async Awakenings
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Nina Netcode
-                              </p>
-                            </div>
-                          </div>
-                          <div className="w-[150px] space-y-3">
-                            <span data-state="closed">
-                              <div className="overflow-hidden rounded-md">
-                                <img
-                                  alt="The Art of Reusability"
-                                  className="aspect-square h-auto w-auto object-cover transition-all hover:scale-105"
-                                  height="150"
-                                  src="/placeholder.svg"
-                                  style={{
-                                    color: "transparent",
-                                  }}
-                                  width="150"
-                                />
-                              </div>
-                            </span>
-                            <div className="space-y-1 text-sm">
-                              <h3 className="font-medium leading-none">
-                                The Art of Reusability
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Lena Logic
-                              </p>
-                            </div>
-                          </div>
-                        </div>
+                          ))}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div
-                aria-labelledby="radix-:r1cv:-trigger-podcasts"
-                className="mt-2 h-full flex-col border-none p-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:flex"
-                data-orientation="horizontal"
-                data-state="inactive"
-                hidden
-                id="radix-:r1cv:-content-podcasts"
-                role="tabpanel"
-                tabIndex="0"
-              />
             </div>
+            <div
+              aria-labelledby="radix-:r1cv:-trigger-podcasts"
+              className="mt-2 h-full flex-col border-none p-0 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:flex"
+              data-orientation="horizontal"
+              data-state="inactive"
+              hidden
+              id="radix-:r1cv:-content-podcasts"
+              role="tabpanel"
+              tabIndex="0"
+            />
           </div>
         </div>
       </div>
     </div>
+    // </div >
   );
 }
 

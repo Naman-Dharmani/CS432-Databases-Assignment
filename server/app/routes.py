@@ -86,6 +86,7 @@ def get_product(id):
             joinedload(Product.subcategory).joinedload(Subcategory.category),
             joinedload(Product.product_images),
             joinedload(Product.hashtags),
+            joinedload(Product.listings).joinedload(Listing.user),
         )
         .filter_by(prod_id=id)
         .first()
@@ -103,12 +104,17 @@ def get_product(id):
     product_dict["hashtags"] = [
         hashtag.to_dict()["tag_label"] for hashtag in product.hashtags
     ]
+    # seller: user_id, name
+    listing = product.listings[0]
+    name = User.query.filter_by(user_id=listing.user_id).first().name
+    product_dict["seller"] = {"user_id": listing.user_id, "name": name}
 
     return product_dict
 
 
 # Route to get all products with pagination
 @app.route("/products", methods=["GET"])
+# @login_required
 def get_products():
     # Retriving the page number from the query string
     try:
@@ -219,6 +225,12 @@ def create_product():
                 )
             db.session.add(product_image)
             db.session.commit()
+
+        # update listings
+        user_id = 2
+        listing = Listing(user_id=user_id, prod_id=product_id)
+        db.session.add(listing)
+        db.session.commit()
 
         return make_response(jsonify({"message": "Product added successfully"}), 201)
 
@@ -432,9 +444,29 @@ def all_transactions(u_id):
         transactions = Transaction.query.filter(
             or_(Transaction.buyer_id == u_id, Transaction.seller_id == u_id)
         ).all()
-        return make_response(
-            jsonify([transaction.to_dict() for transaction in transactions]), 200
-        )
+        # return make_response(
+        #     jsonify([transaction.to_dict() for transaction in transactions]), 200
+        # )
+
+        # response = {transaction + product image}
+
+        response = []
+        for entry in transactions:
+            data = entry.to_dict()
+            prod_id = entry.prod_id
+            data["product_image"] = (
+                Product_Image.query.filter_by(prod_id=prod_id)
+                .first()
+                .to_dict()["image_url"]
+            )
+            data["product_title"] = Product.query.get(prod_id).to_dict()["prod_title"]
+            data["buyer_name"] = User.query.get(entry.buyer_id).to_dict()["name"]
+            data["seller_name"] = User.query.get(entry.seller_id).to_dict()["name"]
+            data["rating"] = Review.query.get(entry.review_id).to_dict()["rating"]
+            data["review"] = Review.query.get(entry.review_id).to_dict()["review_text"]
+            response.append(data)
+
+        return make_response(jsonify(response), 200)
 
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
@@ -489,6 +521,46 @@ def new_transaction():
         return make_response(
             jsonify({"message": "Transaction recorded successfully"}), 201
         )
+
+    except Exception as e:
+        return make_response(jsonify({"error": str(e)}), 500)
+
+
+@app.route("/review/<r_id>", methods=["GET", "POST", "PUT"])
+def review(r_id):
+    try:
+        if request.method == "GET":
+            review = Review.query.get(r_id)
+            if review is None:
+                return make_response(jsonify({"message": "Review not found"}), 404)
+            return make_response(jsonify(review.to_dict()), 200)
+
+        elif request.method == "POST":
+            review_details = request.get_json()
+            review_text = review_details["text"]
+            review_rating = review_details["rating"]
+            date_of_review = datetime.utcnow()
+
+            new_entry = Review(
+                rating=review_rating,
+                date_of_review=date_of_review,
+                review_text=review_text,
+            )
+            db.session.add(new_entry)
+            db.session.commit()
+            return make_response(
+                jsonify({"message": "Review submitted successfully!"}), 201
+            )
+
+        else:
+            review = Review.query.get(r_id)
+            if review is None:
+                return make_response(jsonify({"message": "Review not found"}), 404)
+            data = request.get_json()
+            for key, value in data.items():
+                setattr(review, key, value)
+            db.session.commit()
+            return make_response(jsonify(review.to_dict()), 200)
 
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)

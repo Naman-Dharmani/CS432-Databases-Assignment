@@ -57,7 +57,7 @@ GET {{baseURL}}/products
 GET {{baseURL}}/products?page=2
 
 ### View a Single Product
-GET {{baseURL}}/product/12
+GET {{baseURL}}/product/7
 
 ### Create a New Product
 POST {{baseURL}}/product

@@ -73,6 +73,8 @@ const router = createBrowserRouter([
       },
       {
         path: "/transactions",
+        loader: Transactions.loader,
+        action: Transactions.action,
         element: <Transactions />,
       },
       {

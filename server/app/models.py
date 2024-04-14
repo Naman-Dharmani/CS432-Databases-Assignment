@@ -126,7 +126,9 @@ class Product(db.Model):
     prod_title = Column(String(30), nullable=False)
     description = Column(String(400), nullable=False)
     status = Column(
-        Enum("Available", "Archived", "Sold"), nullable=False, default="Available"
+        Enum("Available", "Archived", "Sold", "Lost", "Found"),
+        nullable=False,
+        default="Available",
     )
     prod_condition = Column(Enum("New", "Used"), nullable=False, default="Used")
     listed_price = Column(DECIMAL(10, 2), nullable=False)
@@ -150,7 +152,7 @@ class Product(db.Model):
         "Interest", backref="product_interests", lazy="dynamic", cascade="all,delete"
     )
     listings = relationship(
-        "Listing", backref="product_listings", lazy="dynamic", cascade="all,delete"
+        "Listing", backref="product_listings", lazy="joined", cascade="all,delete"
     )
     subcategory = relationship("Subcategory", overlaps="subcategory")
     # categories = relationship('Category', backref='product_categories', lazy='dynamic', cascade="all,delete")
@@ -394,7 +396,7 @@ class Interest(db.Model):
 class Listing(db.Model):
     __tablename__ = "listings"
 
-    user_id = Column(Integer, ForeignKey("User.user_id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("User.user_id"))
     prod_id = Column(Integer, ForeignKey("Product.prod_id"), primary_key=True)
 
     def to_dict(self):

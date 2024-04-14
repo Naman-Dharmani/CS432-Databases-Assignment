@@ -306,15 +306,6 @@ def seed_db2():
             selling_price=150.00,
             quantity=1,
         ),
-        Transaction(
-            transaction_id=7,
-            buyer_id=1,
-            seller_id=2,
-            review_id=7,
-            prod_id=1,
-            selling_price=500.00,
-            quantity=1,
-        ),
     ]
 
     db.session.add_all(transactions)
@@ -384,12 +375,6 @@ def seed_db2():
         Listing(user_id=4, prod_id=4),
         Listing(user_id=5, prod_id=5),
         Listing(user_id=6, prod_id=6),
-        Listing(user_id=1, prod_id=2),
-        Listing(user_id=2, prod_id=3),
-        Listing(user_id=3, prod_id=4),
-        Listing(user_id=4, prod_id=5),
-        Listing(user_id=5, prod_id=6),
-        Listing(user_id=6, prod_id=1),
     ]
 
     db.session.add_all(listings)

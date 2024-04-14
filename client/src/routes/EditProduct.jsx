@@ -460,6 +460,8 @@ export default function EditProduct() {
                               </SelectItem>
                               <SelectItem value="Archived">Archived</SelectItem>
                               <SelectItem value="Sold">Sold</SelectItem>
+                              <SelectItem value="Lost">Lost</SelectItem>
+                              <SelectItem value="Found">Found</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
