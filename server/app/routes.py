@@ -1,6 +1,8 @@
 from flask import redirect, request, make_response, jsonify, url_for, flash
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flasgger import swag_from
 from datetime import datetime, timedelta, timezone
+import requests
 
 from . import app
 from .models import db
@@ -24,9 +26,10 @@ from sqlalchemy import or_, and_, MetaData, select
 from sqlalchemy.orm import joinedload
 from flask_dance.contrib.google import google
 from flask_login import login_required, logout_user
-from sqlalchemy.sql import text 
+from sqlalchemy.sql import text
 
-pagination_per_page = 5
+items_per_page = 5
+
 
 @app.route('/admin_user')
 def admin_user():
@@ -45,6 +48,7 @@ def admin_user():
 
     return make_response(jsonify(users), 200)
 
+
 @app.route('/admin_prod')
 def admin_prod():
 
@@ -61,6 +65,7 @@ def admin_prod():
             users.append(row_dict)
 
     return make_response(jsonify(users), 200)
+
 
 @app.route("/")
 def home():
@@ -115,6 +120,49 @@ def login():
     return redirect(url_for("google.login"))
 
 
+@app.route("/auth/google", methods=['POST'])
+def google_login():
+    auth_code = request.get_json()['code']
+
+    data = {
+        'code': auth_code,
+        'client_id': app.config["GOOGLE_OAUTH_CLIENT_ID"],
+        'client_secret': app.config["GOOGLE_OAUTH_CLIENT_SECRET"],
+        'redirect_uri': 'postmessage',
+        'grant_type': 'authorization_code'
+    }
+
+    try:
+        response = requests.post(
+            'https://oauth2.googleapis.com/token', data=data).json()
+        print(response)
+        headers = {
+            'Authorization': f'Bearer {response["access_token"]}'
+        }
+        user_info = requests.get(
+            'https://www.googleapis.com/oauth2/v3/userinfo', headers=headers).json()
+        print(user_info)
+    except Exception as e:
+        return make_response(jsonify({"error": f"error in authenticating user, {e}"}), 500)
+
+    """
+        check here if user exists in database, if not, add him
+    """
+    user = User.query.filter_by(email=user_info['email']).first()
+    if not user:
+        return make_response(jsonify({"error": "User does not exist. Sign up"}), 404)
+
+    user_info['user_id'] = user.user_id
+    jwt_token = create_access_token(
+        identity=user_info['email'])  # create jwt token
+    user_info['jwt'] = jwt_token
+    response = jsonify(user=user_info)
+    # response.set_cookie('access_token_cookie',
+    #                     value=jwt_token, secure=False, domain="app.localhost")
+
+    return response, 200
+
+
 def get_product(id):
     product = (
         Product.query.options(
@@ -128,7 +176,7 @@ def get_product(id):
     )
 
     if product is None:
-        return make_response({"message": "Product not found"}, 404)
+        return make_response(jsonify({"message": "Product not found"}), 404)
 
     product_dict = product.to_dict()
     product_dict["subcategory"] = product.subcategory.to_dict()
@@ -149,18 +197,20 @@ def get_product(id):
 
 # Route to get all products with pagination
 @app.route("/products", methods=["GET"])
-# @login_required
+@jwt_required()
 def get_products():
-    # Retriving the page number from the query string
     try:
-        page_num = request.args.get("page", 1, type=int)
+        # Retriving the page number from the query string
+        # page_num = request.args.get("page", 1, type=int) ## default behaviour, not needed
         # per_page is the max number of products to be shown
         # If there are more products, the has_next attribute will be True
         # IF there are fewer products, the has_next attribute will be False
         page = Product.query.order_by(Product.date_listed.desc()).paginate(
-            page=page_num, per_page=pagination_per_page
-        )
-        products_json = [get_product(product.prod_id) for product in page.items]
+            per_page=items_per_page, error_out=False)
+        products_json = [get_product(product.prod_id)
+                         for product in page.items]
+        if not products_json:
+            return make_response(jsonify({'error': "not found"}), 404)
         # products_json = [product.to_dict() for product in page.items]
 
         return make_response(
@@ -349,7 +399,8 @@ def product(id):
 
             # ist = timezone(timedelta(hours=5, minutes=30))  # IST (UTC+5:30)
             utc = timezone(timedelta(hours=0, minutes=0))
-            product.date_modified = datetime.now(utc).strftime("%Y-%m-%d %H:%M:%S")
+            product.date_modified = datetime.now(
+                utc).strftime("%Y-%m-%d %H:%M:%S")
 
             # # Updating the category attributes
             # category = Category.query.filter_by(prod_id=id).first()
@@ -396,14 +447,54 @@ def product(id):
             db.session.delete(product)
             db.session.commit()
             return make_response(jsonify({"message": "Product deleted"}), 200)
-        
+
         except Exception as e:
             db.session.rollback()
             return make_response(jsonify({"error": str(e)}), 500)
 
 
 # <---------------------------------------------User Routes----------------------------------------------------->
-# TODO
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    try:
+        data = request.json
+        user = User(
+            name=data["name"],
+            email=data["email"],
+            password=data["password"],
+            phone_no=data["phone_no"],
+            gender=data["gender"],
+            residence_location=data["residence_location"],
+            residence_number=data["residence_number"],
+            anonymity_level=data["anonymity_level"],
+            theme_preference=data["theme_preference"],
+            language_preference=data["language_preference"],
+            notification_preference=data["notification_preference"],
+        )
+        user.set_password(data["password"])
+        user.save()
+        return make_response(jsonify({"message": "User created successfully"}), 200)
+    except Exception as e:
+        return make_response(jsonify({"error": str(e)}), 500)
+
+
+@app.route("/user", methods=["GET"])
+@jwt_required()
+@swag_from("docs/get_user.yml")
+def get_user_details():
+    try:
+        # Access the identity of the current user with get_jwt_identity
+        current_user_email = get_jwt_identity()
+
+        user = User.query.filter_by(email=current_user_email).first()
+        if user is None:
+            return make_response(jsonify({"message": "User not found"}), 404)
+        res = user.to_dict()
+        del res["password"]
+        return make_response(jsonify(res), 200)
+    except Exception as e:
+        return make_response(jsonify({"error": str(e)}), 500)
 
 
 @app.route("/user/<int:u_id>", methods=["GET"])
@@ -499,6 +590,7 @@ def all_transactions_(u_id):
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
 
+
 @app.route("/user/<u_id>/transactions", methods=["GET"])
 def all_transactions(u_id):
     try:
@@ -520,11 +612,16 @@ def all_transactions(u_id):
                 .first()
                 .to_dict()["image_url"]
             )
-            data["product_title"] = Product.query.get(prod_id).to_dict()["prod_title"]
-            data["buyer_name"] = User.query.get(entry.buyer_id).to_dict()["name"]
-            data["seller_name"] = User.query.get(entry.seller_id).to_dict()["name"]
-            data["rating"] = Review.query.get(entry.review_id).to_dict()["rating"]
-            data["review"] = Review.query.get(entry.review_id).to_dict()["review_text"]
+            data["product_title"] = Product.query.get(
+                prod_id).to_dict()["prod_title"]
+            data["buyer_name"] = User.query.get(
+                entry.buyer_id).to_dict()["name"]
+            data["seller_name"] = User.query.get(
+                entry.seller_id).to_dict()["name"]
+            data["rating"] = Review.query.get(
+                entry.review_id).to_dict()["rating"]
+            data["review"] = Review.query.get(
+                entry.review_id).to_dict()["review_text"]
             response.append(data)
 
         return make_response(jsonify(response), 200)
@@ -538,7 +635,8 @@ def get_transaction_details(t_id):
     # Add check for user accessibility
     try:
         if request.method == "GET":
-            transaction = Transaction.query.filter_by(transaction_id=t_id).first()
+            transaction = Transaction.query.filter_by(
+                transaction_id=t_id).first()
             return make_response(transaction.to_dict(), 200)
 
         else:
@@ -562,7 +660,7 @@ def get_transaction_details(t_id):
 def new_transaction():
     try:
         if request.method == 'POST':
-            
+
             db.session.begin_nested()
             transaction_details = request.get_json()
             buyer_id = transaction_details["buyer_id"]
@@ -638,7 +736,6 @@ def review(r_id):
 def review_trans(t_id):
     try:
 
-        
         if request.method == "POST":
             db.session.begin_nested()
             review_details = request.get_json()
@@ -665,7 +762,7 @@ def review_trans(t_id):
             )
 
         else:
-            
+
             db.session.begin_nested()
             transaction = Transaction.query.get(t_id)
             review = Review.query.get(transaction.review_id)
@@ -689,7 +786,8 @@ def review_trans(t_id):
 def all_senders(u_id):
     try:
         entries = (
-            ChatSystem.query.join(Listing, Listing.prod_id == ChatSystem.prod_id)
+            ChatSystem.query.join(
+                Listing, Listing.prod_id == ChatSystem.prod_id)
             .filter(Listing.user_id == u_id)
             .all()
         )
@@ -703,7 +801,8 @@ def all_senders(u_id):
 def prod_senders(u_id, p_id):
     try:
         entries = (
-            ChatSystem.query.join(Listing, Listing.prod_id == ChatSystem.prod_id)
+            ChatSystem.query.join(
+                Listing, Listing.prod_id == ChatSystem.prod_id)
             .filter(and_(Listing.user_id == u_id, Listing.prod_id == p_id))
             .all()
         )
@@ -717,7 +816,8 @@ def prod_senders(u_id, p_id):
 def messages_see(p_id, s_id):
     try:
         entries = (
-            Chat.query.join(ChatSystem, ChatSystem.message_id == Chat.message_id)
+            Chat.query.join(
+                ChatSystem, ChatSystem.message_id == Chat.message_id)
             .filter(and_(ChatSystem.sender_id == s_id, ChatSystem.prod_id == p_id))
             .all()
         )
@@ -742,7 +842,8 @@ def messages_send(p_id, s_id, r_id):
             message = chat_details["text"]
             chat_time = datetime.now()
 
-            new_entry1 = Chat(text=message, chat_time=chat_time, read_status=False)
+            new_entry1 = Chat(
+                text=message, chat_time=chat_time, read_status=False)
             db.session.add(new_entry1)
             db.session.commit()
 
@@ -758,7 +859,7 @@ def messages_send(p_id, s_id, r_id):
         return make_response(jsonify({"message": "Message sent successfully!"}), 201)
 
     except Exception as e:
-        
+
         db.session.rollback()
         return make_response(jsonify({"error": str(e)}), 500)
 

@@ -1,18 +1,14 @@
 import { Form, useLoaderData, useNavigate } from "react-router-dom";
 
-// import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  // CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import { Input } from "@/components/ui/input";
-
 import {
   Table,
   TableBody,
@@ -21,24 +17,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 
-
-async function loader({ params }) {
-  return fetch(`${import.meta.env.VITE_URL}/user/1/transactions`);
+async function loader() {
+  return fetch(`${import.meta.env.VITE_URL}/user/1/transactions`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
+    },
+  });
 }
 
-
-async function action({ request, params }) {
+async function action({ request }) {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
 
@@ -48,6 +37,7 @@ async function action({ request, params }) {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
       },
       body: JSON.stringify(data),
     },
@@ -62,11 +52,11 @@ async function action({ request, params }) {
 }
 
 export default function Transactions() {
+  // const navigate = useNavigate();
   const data = useLoaderData();
-  const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex w-full flex-col">
       <Card>
         <CardHeader>
           <CardTitle>Transactions</CardTitle>
@@ -97,10 +87,7 @@ export default function Transactions() {
                       alt="product"
                       className="aspect-square rounded-md object-contain"
                       height="64"
-                      src={
-                        transaction.product_image ||
-                        "/placeholder.svg"
-                      }
+                      src={transaction.product_image || "/placeholder.svg"}
                       width="64"
                     />
                   </TableCell>
@@ -121,7 +108,7 @@ export default function Transactions() {
                               value={transaction.review_id}
                             />
                           </div>
-                          <div className="pr-2 w-24">
+                          <div className="w-24 pr-2">
                             <Input
                               type="number"
                               name="rating"
@@ -136,12 +123,16 @@ export default function Transactions() {
                               defaultValue={transaction.review}
                             />
                           </div>
-                          <div className="p-2"><Button type="submit">Submit</Button></div>
+                          <div className="p-2">
+                            <Button type="submit">Submit</Button>
+                          </div>
                         </div>
-                      </Form></TableCell>) : (
+                      </Form>
+                    </TableCell>
+                  ) : (
                     <TableCell>
                       <div className="flex flex-row items-center">
-                        <div className="pr-2 w-24">
+                        <div className="w-24 pr-2">
                           <Input
                             type="number"
                             name="rating"
@@ -160,16 +151,14 @@ export default function Transactions() {
                         </div>
                       </div>
                     </TableCell>
-                  )
-                  }
-
-                </TableRow >
+                  )}
+                </TableRow>
               ))}
-            </TableBody >
-          </Table >
-        </CardContent >
-      </Card >
-    </div >
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

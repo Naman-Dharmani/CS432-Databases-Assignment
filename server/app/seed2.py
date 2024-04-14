@@ -30,7 +30,7 @@ def seed_db2():
         ),
         User(
             name="Bob Johnson",
-            email="bob.johnson@example.com",
+            email="dharmaninaman@iitgn.ac.in",
             password="password456",
             phone_no="3456789012",
             gender="Male",

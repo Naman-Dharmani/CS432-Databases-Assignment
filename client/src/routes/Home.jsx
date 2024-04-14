@@ -1,15 +1,20 @@
-import { Link, useLoaderData } from "react-router-dom";
-import { HeartIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { Link, useLoaderData } from "react-router-dom";
 
 import { useCategoryData } from "@/context/category-provider";
+
+import { HeartIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 async function loader({ request }) {
   const url = new URL(request.url);
   const page_num = url.searchParams.get("page");
 
-  return fetch(`${import.meta.env.VITE_URL}/products?page=${page_num || 1}`);
+  return fetch(`${import.meta.env.VITE_URL}/products?page=${page_num || 1}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
+    },
+  });
 }
 
 export default function Home() {
@@ -150,8 +155,15 @@ export default function Home() {
                       >
                         <div className="flex space-x-4 pb-4">
                           {data.products
-                            .filter((product) => product.status === "Available")
-                            .filter((product) => selectedCategory === null || product.category.category_id === selectedCategory)
+                            ?.filter(
+                              (product) => product.status === "Available",
+                            )
+                            .filter(
+                              (product) =>
+                                selectedCategory === null ||
+                                product.category.category_id ===
+                                  selectedCategory,
+                            )
                             .map((product) => (
                               <div
                                 className="w-[250px] space-y-3"

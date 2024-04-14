@@ -14,6 +14,14 @@ Content-Type: application/json
 }
 
 ###
+POST {{baseURL}}/auth/google
+Content-Type: application/json
+
+{
+  "code": "4/0AeaYSHBsjZ1vWBVOcjIuDnN-ovrHZAtIEdgFieiwC7GDNgPuQWlBHXE6_TU8ZW8QzIZdsg"
+}
+
+###
 @accessToken = {{auth.response.body.access_token}}
 
 ###
@@ -24,11 +32,11 @@ POST {{baseURL}}/signup
 Content-Type: application/json
 
 {
-  "name": "Alice Smith",
-  "email": "alice.smith@example.com",
+  "name": "Naman Dharmani",
+  "email": "dharmaninaman@iitgn.ac.in",
   "password": "password123",
-  "phone_no": "2345678901",
-  "gender": "Female",
+  "phone_no": "3857839457",
+  "gender": "Male",
   "residence_location": "Los Angeles",
   "residence_number": "456 Elm St",
   "anonymity_level": "Visible",
@@ -96,7 +104,7 @@ DELETE {{baseURL}}/product/1
 #######################
 
 ### Fetch User Details
-GET {{baseURL}}/user/1
+GET {{baseURL}}/user
 
 ### Update User Details
 PUT {{baseURL}}/user/1
@@ -108,7 +116,7 @@ Content-Type: application/json
 }
 
 ### invalid user id as seed.py only does 10 users
-GET {{baseURL}}/user/11 
+GET {{baseURL}}/user/11
 
 ### Delete User
 DELETE {{baseURL}}/user/6

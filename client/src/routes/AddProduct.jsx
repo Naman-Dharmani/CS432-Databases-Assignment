@@ -2,28 +2,12 @@ import { useMemo, useState } from "react";
 import { Form, redirect, useNavigate } from "react-router-dom";
 import { useCategoryData } from "@/context/category-provider";
 
-import {
-  // ChevronLeft,
-  // Home,
-  // LineChart,
-  // Package,
-  // Package2,
-  // PanelLeft,
-  // PlusCircle,
-  // Search,
-  // Settings,
-  // ShoppingCart,
-  CircleX,
-  Upload,
-  // Users2,
-} from "lucide-react";
-// import { Badge } from "@/components/ui/badge";
+import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  // CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -46,22 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-// import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-// import {
-//   Tooltip,
-//   TooltipContent,
-//   TooltipTrigger,
-// } from "@/components/ui/tooltip";
 
 async function action({ request }) {
   const formData = await request.formData();
@@ -78,6 +47,7 @@ async function action({ request }) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
     },
     body: JSON.stringify(data),
   });

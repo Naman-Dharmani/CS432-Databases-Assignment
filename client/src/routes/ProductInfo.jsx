@@ -1,77 +1,26 @@
-import { Form, useLoaderData, useNavigate } from "react-router-dom";
+import { Form, useLoaderData } from "react-router-dom";
 
-import {
-  // ChevronLeft,
-  // Home,
-  // LineChart,
-  // Package,
-  // Package2,
-  // PanelLeft,
-  // PlusCircle,
-  // Search,
-  // Settings,
-  // ShoppingCart,
-  CircleX,
-  Upload,
-  // Users2,
-} from "lucide-react";
-// import { Badge } from "@/components/ui/badge";
+import { CircleX } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  // CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-// import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-// import {
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { HeartIcon } from "lucide-react";
-// import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-// import {
-//   Tooltip,
-//   TooltipContent,
-//   TooltipTrigger,
-// } from "@/components/ui/tooltip";
 
 async function loader({ params }) {
-  return fetch(`${import.meta.env.VITE_URL}/product/${params.prod_id}`);
+  return fetch(`${import.meta.env.VITE_URL}/product/${params.prod_id}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
+    },
+  });
 }
 
 export default function ProductInfo() {
   const data = useLoaderData();
-  const navigate = useNavigate();
 
-  const [imageURL, setImageURL] = useState(
+  const [imageURL] = useState(
     data?.product_images[0]?.image_url || "/placeholder.svg",
   );
 

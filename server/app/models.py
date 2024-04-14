@@ -13,6 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from flask_login import UserMixin, LoginManager
+# from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_sqlalchemy import SQLAlchemy
@@ -49,7 +50,8 @@ class User(UserMixin, db.Model):
     )
     theme_preference = Column(Enum("Dark", "Light"), default="Light")
     language_preference = Column(Enum("English", "Hindi"), default="English")
-    notification_preference = Column(Enum("All", "Chat", "None"), default="All")
+    notification_preference = Column(
+        Enum("All", "Chat", "None"), default="All")
     user_images = relationship(
         "User_Image", backref="user", lazy="dynamic", cascade="all,delete"
     )
@@ -130,7 +132,8 @@ class Product(db.Model):
         nullable=False,
         default="Available",
     )
-    prod_condition = Column(Enum("New", "Used"), nullable=False, default="Used")
+    prod_condition = Column(Enum("New", "Used"),
+                            nullable=False, default="Used")
     listed_price = Column(DECIMAL(10, 2), nullable=False)
     quantity = Column(Integer, nullable=False, default=1)
     date_listed = Column(
@@ -228,7 +231,8 @@ class Notification(db.Model):
 
     notification_id = Column(Integer, primary_key=True, autoincrement=True)
     content = Column(String(255), nullable=False, default="")
-    time = Column(TIMESTAMP, nullable=False, server_default=db.func.current_timestamp())
+    time = Column(TIMESTAMP, nullable=False,
+                  server_default=db.func.current_timestamp())
     read_status = Column(Boolean, nullable=False, default=False)
     user_id = Column(Integer, ForeignKey("User.user_id"), nullable=False)
     # user = relationship("User")
@@ -263,7 +267,8 @@ class Subcategory(db.Model):
 
     subcategory_id = Column(Integer, primary_key=True, autoincrement=True)
     subcategory_name = Column(String(50), nullable=False)
-    category_id = Column(Integer, ForeignKey("Category.category_id"), nullable=False)
+    category_id = Column(Integer, ForeignKey(
+        "Category.category_id"), nullable=False)
     category = relationship(
         "Category",
         back_populates="subcategories",
@@ -324,7 +329,8 @@ class Review(db.Model):
     __tablename__ = "Review"
 
     review_id = Column(Integer, primary_key=True, autoincrement=True)
-    rating = Column(Enum("1", "2", "3", "4", "5", name="rating"), nullable=False)
+    rating = Column(Enum("1", "2", "3", "4", "5",
+                    name="rating"), nullable=False)
     review_text = Column(String(255))
     date_of_review = Column(
         TIMESTAMP, nullable=False, server_default=db.func.current_timestamp()
@@ -377,7 +383,8 @@ class Transaction(db.Model):
     seller_id = Column(Integer, ForeignKey("User.user_id"))
     review_id = Column(Integer)
     prod_id = Column(Integer, ForeignKey("Product.prod_id"))
-    transaction_date = Column(TIMESTAMP, server_default=db.func.current_timestamp())
+    transaction_date = Column(
+        TIMESTAMP, server_default=db.func.current_timestamp())
     selling_price = Column(DECIMAL(10, 2), nullable=False)
     quantity = Column(Integer, nullable=False)
     __table_args__ = (CheckConstraint("quantity >= 1", name="quantity_check"),)
@@ -406,7 +413,8 @@ class Listing(db.Model):
 class ChatSystem(db.Model):
     __tablename__ = "chat_system"
 
-    message_id = Column(Integer, ForeignKey("Chat.message_id"), primary_key=True)
+    message_id = Column(Integer, ForeignKey(
+        "Chat.message_id"), primary_key=True)
     sender_id = Column(Integer, ForeignKey("User.user_id"), primary_key=True)
     reciever_id = Column(Integer, ForeignKey("User.user_id"), primary_key=True)
     prod_id = Column(Integer, ForeignKey("Product.prod_id"), primary_key=True)

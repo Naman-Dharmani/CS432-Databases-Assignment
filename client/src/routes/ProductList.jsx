@@ -1,21 +1,13 @@
-import { Link, useFetcher, useLoaderData, useNavigate } from "react-router-dom";
 import moment from "moment";
+import { useFetcher, useLoaderData, useNavigate } from "react-router-dom";
+
 import {
   ChevronLeft,
   ChevronRight,
   File,
-  Home,
-  LineChart,
   ListFilter,
   MoreHorizontal,
-  Package,
-  Package2,
-  PanelLeft,
   PlusCircle,
-  Search,
-  Settings,
-  ShoppingCart,
-  Users2,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -37,8 +29,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -48,26 +38,42 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 async function loader({ request }) {
   const url = new URL(request.url);
   const page_num = url.searchParams.get("page");
 
-  return fetch(`${import.meta.env.VITE_URL}/products?page=${page_num || 1}`);
+  return fetch(`${import.meta.env.VITE_URL}/products?page=${page_num || 1}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("bs_jwt")}`,
+    },
+  });
 }
 
 export default function ProductList() {
-  const data = useLoaderData();
   const navigate = useNavigate();
   const fetcher = useFetcher();
+  const data = useLoaderData();
+
+  const handleProductEditClick = (e, p_id) => {
+    e.stopPropagation();
+    navigate(`/product/${p_id}/edit`);
+  };
+
+  const handleProductDeleteClick = (e, p_id) => {
+    e.stopPropagation();
+    fetcher.submit(
+      { id: p_id },
+      {
+        method: "DELETE",
+        action: `/product/${p_id}`,
+        encType: "application/json",
+      },
+    );
+  };
 
   const activeProducts = data.products
-    .filter((product) => product.status === "Available")
+    ?.filter((product) => product.status === "Available")
     .map((product) => (
       <TableRow key={product.prod_id}>
         <TableCell className="hidden sm:table-cell">
@@ -132,7 +138,7 @@ export default function ProductList() {
     ));
 
   const soldProducts = data.products
-    .filter((product) => product.status === "Sold")
+    ?.filter((product) => product.status === "Sold")
     .map((product) => (
       <TableRow key={product.prod_id}>
         <TableCell className="hidden sm:table-cell">
@@ -197,7 +203,7 @@ export default function ProductList() {
     ));
 
   const archivedProducts = data.products
-    .filter((product) => product.status === "Archived")
+    ?.filter((product) => product.status === "Archived")
     .map((product) => (
       <TableRow key={product.prod_id}>
         <TableCell className="hidden sm:table-cell">
@@ -386,7 +392,12 @@ export default function ProductList() {
                     <TableBody>
                       {data?.total > 0 &&
                         data.products.map((product) => (
-                          <TableRow key={product.prod_id}>
+                          <TableRow
+                            key={product.prod_id}
+                            onClick={() =>
+                              navigate(`/product/${product.prod_id}`)
+                            }
+                          >
                             <TableCell className="hidden sm:table-cell">
                               <img
                                 alt={product.product_images[0]?.image_caption}
@@ -435,25 +446,19 @@ export default function ProductList() {
                                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
-                                    onClick={() =>
-                                      navigate(
-                                        `/product/${product.prod_id}/edit`,
-                                      )
+                                    onClick={(e) =>
+                                      handleProductEditClick(e, product.prod_id)
                                     }
                                   >
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    onClick={() => {
-                                      fetcher.submit(
-                                        { id: product.prod_id },
-                                        {
-                                          method: "DELETE",
-                                          action: `/product/${product.prod_id}`,
-                                          encType: "application/json",
-                                        },
-                                      );
-                                    }}
+                                    onClick={(e) =>
+                                      handleProductDeleteClick(
+                                        e,
+                                        product.prod_id,
+                                      )
+                                    }
                                   >
                                     Delete
                                   </DropdownMenuItem>
@@ -519,7 +524,7 @@ export default function ProductList() {
                     <TableBody>{activeProducts}</TableBody>
                   </Table>
                 </CardContent>
-                {activeProducts.length == 0 && (
+                {activeProducts?.length == 0 && (
                   <CardFooter>
                     <div className="text-xs text-muted-foreground">
                       No products found
@@ -565,7 +570,7 @@ export default function ProductList() {
                     <TableBody>{soldProducts}</TableBody>
                   </Table>
                 </CardContent>
-                {soldProducts.length == 0 && (
+                {soldProducts?.length == 0 && (
                   <CardFooter>
                     <div className="text-xs text-muted-foreground">
                       No products found
@@ -611,7 +616,7 @@ export default function ProductList() {
                     <TableBody>{archivedProducts}</TableBody>
                   </Table>
                 </CardContent>
-                {archivedProducts.length == 0 && (
+                {archivedProducts?.length == 0 && (
                   <CardFooter>
                     <div className="text-xs text-muted-foreground">
                       No products found
